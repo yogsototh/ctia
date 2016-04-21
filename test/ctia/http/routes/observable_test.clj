@@ -53,8 +53,6 @@
          {indicator-1-id :id} :parsed-body}
         (post "ctia/indicator"
               :body {:title "indicator"
-                     :sightings [{:sighting_id sighting-1-id}
-                                 {:sighting_id sighting-2-id}]
                      :description "indicator 1"
                      :producer "producer"
                      :indicator_type ["C2" "IP Watchlist"]
@@ -93,7 +91,6 @@
          {indicator-2-id :id} :parsed-body}
         (post "ctia/indicator"
               :body {:title "indicator"
-                     :sightings [{:sighting_id sighting-3-id}]
                      :description "indicator 2"
                      :producer "producer"
                      :indicator_type ["C2" "IP Watchlist"]
@@ -142,8 +139,6 @@
          {indicator-3-id :id} :parsed-body}
         (post "ctia/indicator"
               :body {:title "indicator"
-                     :sightings [{:sighting_id sighting-4-id}
-                                 {:sighting_id sighting-5-id}]
                      :description "indicator 3"
                      :producer "producer"
                      :indicator_type ["C2" "IP Watchlist"]
@@ -221,7 +216,6 @@
              #{{:id indicator-2-id
                 :type "indicator"
                 :title "indicator"
-                :sightings [{:sighting_id sighting-3-id}]
                 :description "indicator 2"
                 :producer "producer"
                 :indicator_type ["C2" "IP Watchlist"]
@@ -231,8 +225,6 @@
                {:id indicator-3-id
                 :type "indicator"
                 :title "indicator"
-                :sightings [{:sighting_id sighting-4-id}
-                            {:sighting_id sighting-5-id}]
                 :description "indicator 3"
                 :producer "producer"
                 :indicator_type ["C2" "IP Watchlist"]
@@ -240,41 +232,6 @@
                              :end_time #inst "2016-02-11T00:00:00.000-00:00"}
                 :owner "foouser"}}
              (->> indicators
-                  (map #(dissoc % :created :modified))
-                  set)))))
-
-
-
-    (testing "GET /ctia/:observable_type/:observable_value/sightings"
-      (let [{status :status
-             sightings :parsed-body
-             :as response}
-            (get "ctia/ip/10.0.0.1/sightings"
-                 :headers {"api_key" "45c1f5e3f05d0"})]
-        (is (= 200 status))
-        (is (deep=
-             #{{:id sighting-3-id
-                :type "sighting"
-                :timestamp #inst "2016-02-04T12:00:00.000-00:00"
-                :source "spam"
-                :confidence "None"
-                :description "sighting 3"
-                :owner "foouser"}
-               {:id sighting-4-id
-                :type "sighting"
-                :timestamp #inst "2016-02-05T01:00:00.000-00:00"
-                :source "foo"
-                :confidence "High"
-                :description "sighting 4"
-                :owner "foouser"}
-               {:id sighting-5-id
-                :type "sighting"
-                :timestamp #inst "2016-02-05T02:00:00.000-00:00"
-                :source "bar"
-                :confidence "Low"
-                :description "sighting 5"
-                :owner "foouser"}}
-             (->> sightings
                   (map #(dissoc % :created :modified))
                   set)))))))
 
