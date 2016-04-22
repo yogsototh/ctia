@@ -61,7 +61,7 @@
                               (let [found-v (if (sequential? k)
                                               (get-in model k ::not-found)
                                               (get model k ::not-found))]
-                                (if (sequential? v)
+                                (if (set? v)
                                   (contains? v found-v)
                                   (= v found-v))))
                             filter-map))
