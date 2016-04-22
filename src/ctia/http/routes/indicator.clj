@@ -86,6 +86,15 @@
       (if-let [d (read-indicator @indicator-store id)]
         (ok d)
         (not-found)))
+    (GET "/:id/sightings" []
+      :return [StoredSighting]
+      :path-params [id :- s/Str]
+      :summary "Gets all Sightings associated with the Indicator"
+      (if-let [indicator (read-indicator @indicator-store id)]
+        (if-let [sightings (list-sightings-by-indicators @sighting-store [indicator])]
+          (ok sightings)
+          (not-found))
+        (not-found)))
     (GET "/title/:title" []
       :return (s/maybe [StoredIndicator])
       :summary "Gets an Indicator by title"

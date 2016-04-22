@@ -1,13 +1,14 @@
 (ns ctia.http.routes.indicator-test
   (:refer-clojure :exclude [get])
   (:require
-   [clojure.test :refer [deftest is testing use-fixtures join-fixtures]]
+   [clojure.test :refer [deftest is are testing use-fixtures join-fixtures]]
    [schema-generators.generators :as g]
    [ctia.test-helpers.core :refer [delete get post put] :as helpers]
    [ctia.test-helpers.fake-whoami-service :as whoami-helpers]
    [ctia.test-helpers.store :refer [deftest-for-each-store]]
    [ctia.test-helpers.auth :refer [all-capabilities]]
-   [ctia.schemas.indicator :refer [NewIndicator StoredIndicator]]))
+   [ctia.schemas.indicator :refer [NewIndicator StoredIndicator]]
+   [ctia.schemas.sighting :refer [NewSighting]]))
 
 (use-fixtures :once (join-fixtures [helpers/fixture-schema-validation
                                     helpers/fixture-properties:clean
@@ -196,3 +197,58 @@
                   (map :parsed-body)
                   (map #(dissoc % :id :created :modified :owner))
                   set)))))))
+
+(def api-key "45c1f5e3f05d0")
+(deftest-for-each-store test-sightings-from-indicator
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response api-key "foouser" "user")
+  (let [new-indicators (g/sample 20 NewIndicator)]
+    (testing (str "POST /ctia/indicator"
+                  " POST /ctia/sighting"
+                  " GET /ctia/indicator/:id/sighting")
+      (doseq [new-indicator new-indicators]
+        (let [;; Create a new indicator
+              response (post "ctia/indicator"
+                             :body new-indicator
+                             :headers {"api_key" api-key})
+              _ (when-not (= 200 (:status response))
+                  (println "POST ctia/indicator [" (:status response) "]"))
+
+              ;; Generate and Create Sightings linked to the indicator
+              indicator-id (get-in response [:parsed-body :id])
+              new-sightings (->> (g/sample 20 NewSighting)
+                                 (map #(into % {:indicator
+                                                {:indicator_id indicator-id}})))
+              s-responses (map #(post "ctia/sighting"
+                                      :body %
+                                      :headers {"api_key" api-key})
+                               new-sightings)
+              _ (when-not (every? #(= 200 (:status %)) s-responses)
+                  (doseq [resp s-responses]
+                    (when-not (= 200 (:status resp))
+                      (println "Status wasn't 200:")
+                      (clojure.pprint/pprint resp))))
+
+              ;; Retrieve the sighting-ids
+              stored-sightings (map :parsed-body s-responses)
+              sighting-ids (map :id stored-sightings)
+              search-resp (get (str "ctia/indicator/" indicator-id "/sightings")
+                               :headers {:api-key api-key})
+              _ (when-not (= 200 (:status search-resp))
+                  (println "GET ctia/indicator/:id/sightings [" (:status search-resp) "]"))]
+          (are [x y] (= x y)
+            ;; Indicator created successfully
+            200 (:status response)
+            ;; All Sightings were created successfully
+            (take 20 (repeat 200)) (map :status s-responses) 
+            ;; Get all sightings from indicator retrieved successfully
+            200 (:status search-resp))
+          ;; All retrieved sightings ids are good
+          (is (deep= (set sighting-ids)
+                     (set (->> search-resp
+                               :parsed-body
+                               (map :id)))))
+          ;; All retrieved sightings correspond to the one we created
+          (is (deep=
+               (set stored-sightings)
+               (set (->> search-resp :parsed-body)))))))))
