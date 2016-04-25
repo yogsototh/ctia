@@ -199,10 +199,22 @@
                   set)))))))
 
 (def api-key "45c1f5e3f05d0")
+(defn redprintln [s]
+  (print "\u001b[31m")
+  (println s)
+  (print "\u001b[0m"))
+
 (deftest-for-each-store test-sightings-from-indicator
   (helpers/set-capabilities! "foouser" "user" all-capabilities)
   (whoami-helpers/set-whoami-response api-key "foouser" "user")
-  (let [new-indicators (g/sample 20 NewIndicator)]
+  (let [new-indicators (g/sample 1 NewIndicator)
+        ;; BEWARE ES AS A MAXIMUM TO 10 !!!!!!
+        nb-sightings 20]
+    (if (> nb-sightings ctia.lib.es.document/default-limit)
+      (redprintln (str "BEWARE! ES Couldn't handle more than 10 element by search by default."
+                       " It is set to " ctia.lib.es.document/default-limit " in `lib.es.document.clj`"
+                       " You might want to change either `nb-sightings` in this test"
+                       " or change `ctia.lib.es.document/default-limit`")))
     (testing (str "POST /ctia/indicator"
                   " POST /ctia/sighting"
                   " GET /ctia/indicator/:id/sighting")
@@ -212,11 +224,11 @@
                              :body new-indicator
                              :headers {"api_key" api-key})
               _ (when-not (= 200 (:status response))
-                  (println "POST ctia/indicator [" (:status response) "]"))
+                  (redprintln "POST ctia/indicator [" (:status response) "]"))
 
               ;; Generate and Create Sightings linked to the indicator
               indicator-id (get-in response [:parsed-body :id])
-              new-sightings (->> (g/sample 20 NewSighting)
+              new-sightings (->> (g/sample nb-sightings NewSighting)
                                  (map #(into % {:indicator
                                                 {:indicator_id indicator-id}})))
               s-responses (map #(post "ctia/sighting"
@@ -226,8 +238,8 @@
               _ (when-not (every? #(= 200 (:status %)) s-responses)
                   (doseq [resp s-responses]
                     (when-not (= 200 (:status resp))
-                      (println "Status wasn't 200:")
-                      (clojure.pprint/pprint resp))))
+                      (redprintln "Status wasn't 200:"
+                                  (with-out-str (clojure.pprint/pprint resp))))))
 
               ;; Retrieve the sighting-ids
               stored-sightings (map :parsed-body s-responses)
@@ -235,12 +247,12 @@
               search-resp (get (str "ctia/indicator/" indicator-id "/sightings")
                                :headers {:api-key api-key})
               _ (when-not (= 200 (:status search-resp))
-                  (println "GET ctia/indicator/:id/sightings [" (:status search-resp) "]"))]
+                  (redprintln "GET ctia/indicator/:id/sightings [" (:status search-resp) "]"))]
           (are [x y] (= x y)
             ;; Indicator created successfully
             200 (:status response)
             ;; All Sightings were created successfully
-            (take 20 (repeat 200)) (map :status s-responses) 
+            (take nb-sightings (repeat 200)) (map :status s-responses) 
             ;; Get all sightings from indicator retrieved successfully
             200 (:status search-resp))
           ;; All retrieved sightings ids are good
