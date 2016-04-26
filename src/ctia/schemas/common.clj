@@ -23,6 +23,11 @@
   "Schema definition for all date or timestamp values in GUNDAM."
   s/Inst)
 
+(s/defschema TLPValue
+  "TLP Stand for Traffic Light Protocol (https://www.us-cert.gov/tlp).
+  Precise how this resource is intended to be shared, replicated, copied..."
+  (s/enum :red :yellow :green :white))
+
 (s/defschema VersionInfo
   {:base URI
    :version s/Str
