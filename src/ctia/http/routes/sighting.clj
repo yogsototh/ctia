@@ -19,11 +19,13 @@
       :summary "Adds a new Sighting"
       :capabilities #{:create-sighting :admin}
       :login login
-      (ok (flows/create-flow :realize-fn realize-sighting
-                             :store-fn #(create-sighting @sighting-store %)
-                             :object-type :sighting
-                             :login login
-                             :object sighting)))
+      (ok (try (flows/create-flow :realize-fn realize-sighting
+                                  :store-fn #(create-sighting @sighting-store %)
+                                  :object-type :sighting
+                                  :login login
+                                  :object sighting)
+               (catch Exception e
+                 (clojure.pprint/pprint e)))))
     (PUT "/:id" []
       :return StoredSighting
       :body [sighting NewSighting {:description "An updated Sighting"}]
