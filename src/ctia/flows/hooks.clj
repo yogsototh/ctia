@@ -106,6 +106,12 @@
                    (get-in @hooks [hook-type :list])
                    read-only?))
 
+(defn event-hooks [event]
+  (apply-hook-list :to-remove
+                   event
+                   (get-in @hooks [:event :list])
+                   true))
+
 (defn from-java-handle
   "Helper to import Java obeying `Hook` java interface."
   [o type-name stored-object prev-object]
@@ -116,4 +122,3 @@
                    (java.util.HashMap. stored-object))
                  (when (some? prev-object)
                    (java.util.HashMap. prev-object)))))
-

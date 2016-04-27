@@ -207,4 +207,19 @@
                                :start_time (or (get-in new-object [:valid_time :start_time])
                                                now)}))))))
 
+(s/defscheam Entity
+  {s/Keyword s/Any})
 
+(s/defschema Command
+  (s/merge
+   {:command-name s/Str
+    :stored-entity Entity
+    :previous-stored-entity (s/maybe Entity)}))
+
+(defn realized-to-command [command-name entity previous-entity]
+  {:command-name command-name
+   :stored-entity entity
+   :previous-stored-entity previous-entity})
+
+(defn default-command-to-realize [command]
+  (:stored-entity command))

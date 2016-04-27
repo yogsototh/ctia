@@ -22,24 +22,17 @@
     - `:after-create` hooks are read only"
   [& {:keys [realize-fn store-fn object-type login object]}]
   (let [id (make-id object-type object)
-        realized (realize-fn object id login)
-        pre-hooked (apply-hooks :type-name       object-type
-                                :realized-object realized
-                                :hook-type       :before-create)
+        command (-> object
+                     (realize-fn id login)
+                     (realized-to-command :create))
+
+        pre-hooked (command-to-realize (apply-hooks command))
         event (try (to-create-event pre-hooked)
                    (catch Exception e
                      (do (clojure.pprint/pprint object)
                          (prn e))))
-        _ (apply-hooks :type-name       object-type
-                       :realized-object event
-                       :hook-type       :before-create-ro
-                       :read-only?      true)
-        stored (store-fn pre-hooked)]
-    (apply-hooks :type-name       object-type
-                 :realized-object stored
-                 :hook-type       :after-create
-                 :read-only?      true)
-    stored))
+        _ (event-hooks event)]
+    (store-fn pre-hooked)))
 
 (defn update-flow
   "This function centralize the update workflow.
