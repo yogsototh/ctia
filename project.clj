@@ -50,12 +50,17 @@
   :test-selectors {:atom-store :atom-store
                    :sql-store :sql-store
                    :es-store :es-store
+                   :redis-store :redis-store
                    :disabled :disabled
                    :es-producer #(or (:es-producer %)
                                      (:es-producer-filtered-alias %)
                                      (:es-producer-aliased-index %))
-
-                   :default #(not (:disabled %))
+                   :default #(not (or (:disabled %)
+                                      (:es-store %)
+                                      (:es-producer %)
+                                      (:integration %)
+                                      (:redis-store %)
+                                      (:regression %)))
                    :integration #(or (:es-store %)
                                      (:integration %)
                                      (:es-producer %)
