@@ -162,10 +162,11 @@
        (json? content-type) (json/parse-string body)
        :else default)
      (catch Exception e
-       (println "------- BODY ----------")
-       (clojure.pprint/pprint body)
-       (println "------- EXCEPTION ----------")
-       (clojure.pprint/pprint e)))))
+       (binding [*out* *err*]
+         (println "------- BODY ----------")
+         (clojure.pprint/pprint body)
+         (println "------- EXCEPTION ----------")
+         (clojure.pprint/pprint e))))))
 
 (defn encode-body
   [body content-type]
