@@ -66,10 +66,13 @@
     :header-params [api_key :- (s/maybe s/Str)]
     :capabilities #{:list-indicators-by-observable :admin}
     (ok
-     (some->> {:type observable_type
-               :value observable_value}
-              (list-judgements-by-observable @judgement-store)
-              (list-indicators-by-judgements @indicator-store))))
+     (try
+       (some->> {:type observable_type
+                 :value observable_value}
+                (list-judgements-by-observable @judgement-store)
+                (list-indicators-by-judgements @indicator-store))
+       (catch Exception e
+         (clojure.pprint/pprint e)))))
 
   (GET "/:observable_type/:observable_value/sightings" []
     :tags ["Sighting"]
@@ -87,6 +90,9 @@
     :return (s/maybe [StoredSighting])
     :summary "Returns all the Sightings associated with the specified observable."
     (ok
-     (list-sightings-by-observables @sighting-store
-                                    [{:type observable_type
-                                      :value observable_value}]))))
+     (try
+       (list-sightings-by-observables @sighting-store
+                                      [{:type observable_type
+                                        :value observable_value}])
+       (catch Exception e
+         (clojure.pprint/pprint e))))))

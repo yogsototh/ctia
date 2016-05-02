@@ -1,8 +1,10 @@
 (ns ctia.http.routes.observable-test
   (:refer-clojure :exclude [get])
   (:require
-
+   [ring.util.codec :refer [url-encode]]
    [schema-generators.generators :as g]
+   [clojure.test.check.generators :as gen]
+   [ctia.schemas.common  :refer [Observable]]
    [ctia.schemas.sighting  :refer [NewSighting]]
    [ctia.schemas.indicator  :refer [NewIndicator]]
    [ctia.schemas.judgement  :refer [NewJudgement]]
@@ -58,8 +60,13 @@
   (let [nb-judgements 1
         nb-indicators 1
         nb-sightings 1
-        observable {:type "ip" :value "1.2.3.4"}]
-    (doseq [new-judgement (->> (g/sample nb-judgements NewJudgement)
+        nb-observables 2]
+    (doseq [observable (cons {:value "1.2.3.4" :type "ip"}
+                             (take nb-observables
+                                   (remove #(empty? (:value %))
+                                           (g/sample (* 2 nb-observables)
+                                                     Observable))))
+            new-judgement (->> (g/sample nb-judgements NewJudgement)
                                ;; HARDCODED VALUES
                                (map #(merge % {:disposition 5
                                                :disposition_name "Unknown"
@@ -68,7 +75,8 @@
       (let [judgement (test-post "ctia/judgement" new-judgement)]
         (when judgement
           (let [new-indicators (->> (g/sample nb-indicators NewIndicator)
-                                    (map #(merge % {:observable observable})))
+                                    (map #(merge % {:judgements
+                                                    [{:judgement_id (:id judgement)}]})))
                 indicators     (remove nil?
                                        (map #(test-post "ctia/indicator" %)
                                             new-indicators))]
@@ -82,10 +90,10 @@
                                         (map add-sightings-fn))
                     sightings      (doall (map #(test-post "ctia/sighting" %)
                                                new-sightings))
-                    route-pref (str "ctia/" (get-in judgement [:observable :type])
-                                    "/" (get-in judgement [:observable :value]))]
+                    route-pref (str "ctia/" (url-encode (get-in judgement [:observable :type]))
+                                    "/" (url-encode (get-in judgement [:observable :value])))]
                 (test-get (str route-pref "/judgements") [judgement])
-                ;; TODO:
                 ;; (test-get (str route-pref "/indicators") indicators)
-                (test-get (str route-pref "/sightings") sightings)))))))))
+                (test-get (str route-pref "/sightings") sightings)
+                ))))))))
 
