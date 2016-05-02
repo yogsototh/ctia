@@ -1,6 +1,7 @@
 (ns ctia.http.routes.indicator-test
   (:refer-clojure :exclude [get])
   (:require
+   [ring.util.codec :refer [url-encode]]
    [clojure.test :refer [deftest is are testing use-fixtures join-fixtures]]
    [schema-generators.generators :as g]
    [ctia.test-helpers.core :refer [delete get post put] :as helpers]
@@ -240,7 +241,7 @@
                   sighting-ids (map :id sightings)]
               (when-not (empty? (remove nil? sightings))
                 (testing "GET /ctia/indicator/:id/sightings"
-                  (let [search-resp (get (str "ctia/indicator/" (:id indicator) "/sightings")
+                  (let [search-resp (get (str "ctia/indicator/" (url-encode (:id indicator)) "/sightings")
                                          :headers {"api_key" api-key})]
                     (is (= 200 (:status search-resp)))
                     (is (= (set sighting-ids)
