@@ -91,11 +91,13 @@
                                        (map #(test-post "ctia/indicator" %)
                                             new-indicators))]
             (when (= (count indicators) nb-indicators)
-              (let [add-sightings-fn #(assoc %
-                                             :indicators
-                                             (map (fn [i] {:indicator_id (:id i)})
-                                                  indicators)
-                                             :observables [observable])
+              (let [add-sightings-fn #(-> %
+                                          (assoc :indicators
+                                                 (map (fn [i] {:indicator_id (:id i)})
+                                                      indicators)
+                                                 :observables [observable])
+                                          ;; generated relations cause too much troubles
+                                          (dissoc :relations))
                     new-sightings  (->> (g/sample nb-sightings NewSighting)
                                         (map add-sightings-fn))
                     sightings      (doall (map #(test-post "ctia/sighting" %)

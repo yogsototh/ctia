@@ -156,10 +156,16 @@
   ([{{content-type "Content-Type"} :headers
      body :body}
     default]
-   (cond
-     (edn? content-type) (edn/read-string body)
-     (json? content-type) (json/parse-string body)
-     :else default)))
+   (try
+     (cond
+       (edn? content-type) (edn/read-string body)
+       (json? content-type) (json/parse-string body)
+       :else default)
+     (catch Exception e
+       (println "------- BODY ----------")
+       (clojure.pprint/pprint body)
+       (println "------- EXCEPTION ----------")
+       (clojure.pprint/pprint e)))))
 
 (defn encode-body
   [body content-type]
