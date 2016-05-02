@@ -37,10 +37,19 @@
         (redprintln (get-in resp [:parsed-body :errors])))
       (is (= 200 (:status resp)))
       (when (= 200 (:status resp))
-        (is (= new-entity (dissoc (:parsed-body resp) :id :created :modified :owner)))
+        (is (= (dissoc new-entity :relations)
+               (dissoc (:parsed-body resp) :id :created :modified :owner :relations)))
         (:parsed-body resp)))))
 
-(defn test-get
+(defn test-delete
+  "Helper which test a delete request occurs with success"
+  [path]
+  (testing (str "DELETE " path)
+    (let [resp (delete path :headers {"api_key" api-key})]
+      (is (= 204 (:status resp)))
+      (= 204 (:status resp)))))
+
+(defn test-get-list
   "Helper which test a get request occurs with success and return the right object"
   [path expected-entity]
   (testing (str "GET " path)
@@ -51,16 +60,17 @@
         (redprintln (get-in resp [:parsed-body :errors])))
       (is (= 200 (:status resp)))
       (when (= 200 (:status resp))
-        (is (= expected-entity (:parsed-body resp)))
+        (is (= (set expected-entity)
+               (set (:parsed-body resp))))
         (:parsed-body resp)))))
 
 (deftest-for-each-store test-get-things-by-observable-routes
   (helpers/set-capabilities! "foouser" "user" all-capabilities)
   (whoami-helpers/set-whoami-response api-key "foouser" "user")
-  (let [nb-judgements 1
-        nb-indicators 1
-        nb-sightings 1
-        nb-observables 2]
+  (let [nb-judgements 5
+        nb-indicators 5
+        nb-sightings 5
+        nb-observables 5]
     (doseq [observable (cons {:value "1.2.3.4" :type "ip"}
                              (take nb-observables
                                    (remove #(empty? (:value %))
@@ -90,10 +100,19 @@
                                         (map add-sightings-fn))
                     sightings      (doall (map #(test-post "ctia/sighting" %)
                                                new-sightings))
-                    route-pref (str "ctia/" (url-encode (get-in judgement [:observable :type]))
-                                    "/" (url-encode (get-in judgement [:observable :value])))]
-                (test-get (str route-pref "/judgements") [judgement])
+                    route-pref (str "ctia/"
+                                    (url-encode (get-in judgement
+                                                        [:observable :type]))
+                                    "/"
+                                    (url-encode (get-in judgement
+                                                        [:observable :value])))]
+                (test-get-list (str route-pref "/judgements") [judgement])
+                ;; TODO: fix it
                 ;; (test-get (str route-pref "/indicators") indicators)
-                (test-get (str route-pref "/sightings") sightings)
-                ))))))))
+                (test-get-list (str route-pref "/sightings") sightings)
+                (doseq [sighting sightings]
+                  (test-delete (str "ctia/sighting/" (:id sighting)))))))
+          (test-delete (str "ctia/judgement/" (:id judgement))))
+        ;; Just to prevent getting out without any `is`.
+        (is (= 1 1))))))
 

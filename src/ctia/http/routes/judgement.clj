@@ -80,9 +80,11 @@
       :header-params [api_key :- (s/maybe s/Str)]
       :summary "Deletes a Judgement"
       :capabilities #{:delete-judgement :admin}
-      (if (flows/delete-flow :get-fn #(read-judgement @judgement-store %)
-                             :delete-fn #(delete-judgement @judgement-store %)
-                             :object-type :judgement
-                             :id id)
+      (if (try (flows/delete-flow :get-fn #(read-judgement @judgement-store %)
+                                  :delete-fn #(delete-judgement @judgement-store %)
+                                  :object-type :judgement
+                                  :id id)
+               (catch Exception e
+                 (clojure.pprint/pprint e)))
         (no-content)
         (not-found)))))
