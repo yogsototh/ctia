@@ -2,6 +2,9 @@
   (:refer-clojure :exclude [get])
   (:require
    [clojure.test :refer [deftest is testing use-fixtures join-fixtures]]
+   [clojure.test.check.clojure-test :refer [defspec]]
+   [clojure.test.check.generators :as gen]
+   [clojure.test.check.properties :as prop]
    [schema-generators.generators :as g]
    [ctia.test-helpers.core :refer [delete get post put] :as helpers]
    [ctia.test-helpers.fake-whoami-service :as whoami-helpers]
@@ -63,3 +66,30 @@
                                         :headers {"api_key" api-key})]
               (is (= 404 status)))))))))
 
+;; Should use fixtures, need refactoring
+;;
+;; (defspec sighting-without-any-observable-or-indicator-is-rejected
+;;   20
+;;   (prop/for-all [new-sighting (gen/fmap
+;;                                #(assoc % :observables [] :indicators [])
+;;                                (g/generator NewSighting))]
+;;     (= 422
+;;        (:status (post "ctia/sighting"
+;;                       :body new-sighting
+;;                       :headers {"api_key" api-key})))))
+
+(deftest-for-each-store sighting-without-any-observable-or-indicator-is-rejected
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response api-key "foouser" "user")
+  (testing "sighting without obserable or indicator are rejected"
+    (reduce (fn [_ new-sighting]
+              (let [resp (post "ctia/sighting"
+                              :body new-sighting
+                              :headers {"api_key" api-key})
+                    res (= 422 (:status resp))]
+                (if res
+                  (is (= 422 (:status resp)))
+                  (reduced
+                   (is (= 422 (:status resp)))))))
+            (->> (g/sample 20 NewSighting)
+                 (map #(assoc % :observables [] :indicators []))))))

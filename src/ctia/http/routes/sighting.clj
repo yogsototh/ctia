@@ -6,7 +6,8 @@
             [ctia.store :refer :all]
             [ctia.schemas.sighting :refer [NewSighting
                                            StoredSighting
-                                           realize-sighting]]))
+                                           realize-sighting
+                                           check-new-sighting]]))
 
 (defroutes sighting-routes
 
@@ -19,13 +20,13 @@
       :summary "Adds a new Sighting"
       :capabilities #{:create-sighting :admin}
       :login login
-      (ok (try (flows/create-flow :realize-fn realize-sighting
-                                  :store-fn #(create-sighting @sighting-store %)
-                                  :object-type :sighting
-                                  :login login
-                                  :object sighting)
-               (catch Exception e
-                 (clojure.pprint/pprint e)))))
+      (if (check-new-sighting sighting)
+        (ok (flows/create-flow :realize-fn realize-sighting
+                               :store-fn #(create-sighting @sighting-store %)
+                               :object-type :sighting
+                               :login login
+                               :object sighting))
+        (unprocessable-entity)))
     (PUT "/:id" []
       :return StoredSighting
       :body [sighting NewSighting {:description "An updated Sighting"}]
