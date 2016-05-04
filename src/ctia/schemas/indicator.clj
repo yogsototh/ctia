@@ -101,6 +101,74 @@
     ;; Not provided: handling
     }))
 
+(s/defschema IndicatorSwaggerQuery
+  "Query format to query for a list of indicators"
+  (st/optional-keys
+   {:alternate_ids (describe [s/Str] "alternative identifier (or alias)")
+    :version (describe s/Str "schema version for this content")
+    :negate (describe s/Bool "specifies the absence of the pattern")
+    :indicator_type (describe [v/IndicatorType]
+                              "Specifies the type or types for this Indicator")
+    :tags (describe #{s/Str} "Descriptors for this indicator")
+    :observable (describe c/Observable
+                          "a relevant cyber observable for this Indicator")
+    :judgement_ids (describe #{s/Str} "Judgement ids")
+    :indicated_TTP_ids (describe #{rel/TTPReference}
+                                 "the relevant TTP indicated by this Indicator")
+    :likely_impact (describe
+                    s/Str
+                    (str "likely potential impact within the relevant context"
+                         " if this Indicator were to occur"))
+    :suggested_COA_ids (describe #{rel/COAReference}
+                                 "suggested Courses of Action")
+    :confidence (describe
+                 #{v/HighMedLow}
+                 "level of confidence held in the accuracy of this Indicator")
+    :sighting_ids (describe #{rel/SightingReference} "a set of sighting reports")
+    :related_indicator_ids (describe #{rel/IndicatorReference}
+                                     (str "relationship between the enclosing indicator and"
+                                          " a disparate indicator"))
+    :related_campaign_ids (describe #{rel/CampaignReference}
+                                    "references to related campaigns")
+    :related_COA_ids (describe
+                      #{rel/COAReference}
+                      "related Courses of Actions for this cyber threat Indicator")
+    }))
+
+(s/defschema IndicatorQuery
+  "Query format to query for a list of indicators"
+  (st/optional-keys
+   {:alternate_ids (describe [s/Str] "alternative identifier (or alias)")
+    :version (describe s/Str "schema version for this content")
+    :negate (describe s/Bool "specifies the absence of the pattern")
+    :indicator_type (describe [v/IndicatorType]
+                              "Specifies the type or types for this Indicator")
+    :tags (describe #{s/Str} "Descriptors for this indicator")
+    :observable (describe c/Observable
+                          "a relevant cyber observable for this Indicator")
+    [:judgements :judgement_id] (describe #{s/Str} "Judgement ids")
+    [:indicated_TTP :ttp_id] (describe #{rel/TTPReference}
+                                       "the relevant TTP indicated by this Indicator")
+    :likely_impact (describe
+                    s/Str
+                    (str "likely potential impact within the relevant context"
+                         " if this Indicator were to occur"))
+    [:suggested_COAs :COA_id] (describe #{rel/COAReference}
+                                        "suggested Courses of Action")
+    :confidence (describe
+                 #{v/HighMedLow}
+                 "level of confidence held in the accuracy of this Indicator")
+    [:sightings :sighting_id] (describe #{rel/SightingReference} "a set of sighting reports")
+    [:related_indicators :indicator_id] (describe #{rel/IndicatorReference}
+                         (str "relationship between the enclosing indicator and"
+                              " a disparate indicator"))
+    [:related_campaigns :campaign_id] (describe #{rel/CampaignReference}
+                                                "references to related campaigns")
+    [:related_COAs :COA_id] (describe
+                             #{rel/COAReference}
+                             "related Courses of Actions for this cyber threat Indicator")
+    }))
+
 (s/defschema Type
   (s/enum "indicator"))
 
@@ -128,3 +196,16 @@
           :created
           :modified
           :owner))
+
+(s/defn format-indicator-query :- IndicatorQuery
+  [search :- IndicatorSwaggerQuery]
+  (clojure.set/rename-keys
+   search
+   (st/optional-keys
+    {:judgement_ids         (s/optional-key [:judgements :judgement_id])
+     :indicated_TTP_ids     (s/optional-key [:indicated_TTP :ttp_id])
+     :suggested_COA_ids     (s/optional-key [:suggested_COAs :COA_id])
+     :sighting_ids          (s/optional-key [:sightings :sighting_id])
+     :related_indicator_ids (s/optional-key [:related_indicators :indicator_id])
+     :related_campaign_ids  (s/optional-key [:related_campaigns :campaign_id])
+     :related_COA_ids       (s/optional-key [:related_COAs :COA_id])})))
