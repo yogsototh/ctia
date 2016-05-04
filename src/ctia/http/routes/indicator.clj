@@ -10,7 +10,7 @@
             [ctia.schemas.ttp :refer [StoredTTP]]
             [ctia.schemas.indicator :refer [NewIndicator
                                             StoredIndicator
-                                            IndicatorQuery
+                                            IndicatorSwaggerQuery
                                             realize-indicator
                                             generalize-indicator
                                             format-indicator-query]]
@@ -95,7 +95,7 @@
         (not-found)))
     (GET "/title/:title" []
       :return (s/maybe [StoredIndicator])
-      :summary "Gets an Indicator by title"
+      :summary "Gets Indicators by title"
       :path-params [title :- s/Str]
       :header-params [api_key :- (s/maybe s/Str)]
       :capabilities #{:list-indicators-by-title :admin}
@@ -104,12 +104,14 @@
         (not-found)))
     (GET "/" []
       :return (s/maybe [StoredIndicator])
-      :summary "Gets an Indicator by title"
-      :body [search IndicatorQuery {:description "search using MongoDB-like object"}]
+      :summary "Gets a list of Indicator"
+      :body [search IndicatorSwaggerQuery {:description "search using MongoDB-like object"}]
       :header-params [api_key :- (s/maybe s/Str)]
       :capabilities #{:list-indicators :admin}
       (if-let [d (list-indicators @indicator-store (format-indicator-query search))]
-        (ok d)
+        (if (empty? d)
+          (not-found)
+          (ok d))
         (not-found)))
     (POST "/:id/sighting" []
       :return StoredSighting
