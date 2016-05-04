@@ -10,8 +10,10 @@
             [ctia.schemas.ttp :refer [StoredTTP]]
             [ctia.schemas.indicator :refer [NewIndicator
                                             StoredIndicator
+                                            IndicatorSwaggerQuery
                                             realize-indicator
-                                            generalize-indicator]]
+                                            generalize-indicator
+                                            format-indicator-query]]
             [ctia.schemas.sighting :refer [NewSighting
                                            StoredSighting
                                            realize-sighting]]))
@@ -97,10 +99,50 @@
         (not-found)))
     (GET "/title/:title" []
       :return (s/maybe [StoredIndicator])
-      :summary "Gets an Indicator by title"
+      :summary "Gets Indicators by title word"
       :path-params [title :- s/Str]
       :header-params [api_key :- (s/maybe s/Str)]
       :capabilities #{:list-indicators-by-title :admin}
-      (if-let [d (list-indicators @indicator-store {:title title})]
+      (if-let [d (list-indicators-by-title-word @indicator-store {:title title})]
         (ok d)
+        (not-found)))
+    (GET "/_search" []
+      :return (s/maybe [StoredIndicator])
+      :summary "Gets a list of Indicator"
+      :query [search IndicatorSwaggerQuery {:description "search indicators matching pattern"}]
+      :header-params [api_key :- (s/maybe s/Str)]
+      :capabilities #{:list-indicators :admin}
+      (let [formatted-query (format-indicator-query search)]
+        (prn formatted-query)
+        (if-let [d (list-indicators @indicator-store formatted-query)]
+          (if (empty? d)
+            (not-found)
+            (ok d))
+          (not-found))))
+    (POST "/:id/sighting" []
+      :return StoredSighting
+      :path-params [id :- s/Str]
+      :body [sighting NewSighting {:description "a new Sighting"}]
+      :summary "Adds a new Sighting for the given Indicator"
+      :header-params [api_key :- (s/maybe s/Str)]
+      :capabilities #{:create-sighting :admin}
+      :login login
+      (if-let [indicator (read-indicator @indicator-store id)]
+        (let [sighting (flows/create-flow :realize-fn realize-sighting
+                                          :store-fn #(create-sighting @sighting-store %)
+                                          :object-type :sighting
+                                          :login login
+                                          :object (assoc sighting
+                                                         :indicator
+                                                         {:indicator_id id}))]
+          (flows/update-flow :get-fn #(read-indicator @indicator-store %)
+                             :realize-fn realize-indicator
+                             :update-fn #(update-indicator @indicator-store (:id %) %)
+                             :object-type :indicator
+                             :id id
+                             :login login
+                             :object (-> (generalize-indicator indicator)
+                                         (update :sightings
+                                                 conj {:sighting_id (:id sighting)})))
+          (ok sighting))
         (not-found)))))

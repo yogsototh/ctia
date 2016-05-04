@@ -24,6 +24,7 @@
   (read-indicator [this id])
   (delete-indicator [this id])
   (list-indicators [this filtermap])
+  (list-indicators-by-title-word [this words])
   (list-indicators-by-judgements [this judgements]))
 
 (defprotocol IExploitTargetStore

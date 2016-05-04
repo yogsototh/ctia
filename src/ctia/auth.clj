@@ -19,6 +19,7 @@
      :list-judgements-by-indicator
      :read-indicator
      :list-indicators-by-title
+     :list-indicators
      :read-feedback
      :reat-ttp
      :read-campaign

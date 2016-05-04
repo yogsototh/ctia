@@ -10,7 +10,6 @@
                                            check-new-sighting]]))
 
 (defroutes sighting-routes
-
   (context "/sighting" []
     :tags ["Sighting"]
     (POST "/" []
@@ -58,6 +57,11 @@
       :summary "Deletes a Sighting"
       :header-params [api_key :- s/Str]
       :capabilities #{:delete-sighting :admin}
-      (if (delete-sighting @sighting-store id)
+      :login login
+      (if (flows/delete-flow :entity-type :sighting
+                             :get-fn #(read-sighting @sighting-store %)
+                             :delete-fn #(delete-sighting @sighting-store %)
+                             :id id
+                             :login login)
         (no-content)
         (not-found)))))

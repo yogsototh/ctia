@@ -12,6 +12,7 @@
     :create-sighting :read-sighting :delete-sighting
     :create-indicator :read-indicator
     :list-indicators-by-title
+    :list-indicators
     :create-ttp :read-ttp :delete-ttp
     :list-judgements-by-observable
     :list-judgements-by-indicator

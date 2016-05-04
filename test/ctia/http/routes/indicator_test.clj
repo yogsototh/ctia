@@ -10,7 +10,7 @@
    [ctia.test-helpers.store :refer [deftest-for-each-store]]
    [ctia.test-helpers.auth :refer [all-capabilities]]
    [ctia.test-helpers.http :refer [api-key test-post]]
-   [ctia.schemas.indicator :refer [NewIndicator StoredIndicator]]
+   [ctia.schemas.indicator :refer [NewIndicator StoredIndicator IndicatorSwaggerQuery]]
    [ctia.schemas.sighting :refer [NewSighting]]))
 
 (use-fixtures :once (join-fixtures [helpers/fixture-schema-validation
@@ -206,6 +206,27 @@
                   (map #(dissoc % :id :created :modified :owner))
                   set)))))))
 
+(deftest-for-each-store test-indicator-routes-search
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response "45c1f5e3f05d0" "foouser" "user")
+  (let [k :negate
+        v true
+        new-indicators (g/sample 2 NewIndicator)]
+    (testing "POST /ctia/indicator POST /ctia/indicator/_search"
+      (let [responses (map #(post "ctia/indicator"
+                                  :body %
+                                  :headers {"api_key" "45c1f5e3f05d0"}) new-indicators)]
+        (doall (map #(is (= 200 (:status %))) responses))
+        (let [expected (set (filter (fn [ind] (= (clojure.core/get ind k)
+                                                 v))
+                                    (map :parsed-body responses)))]
+          (is (= expected
+                 (->> (post (str "ctia/indicator/_search")
+                            :body {k v}
+                            :headers {"api_key" "45c1f5e3f05d0"})
+                      :parsed-body
+                      set))))))))
+
 (deftest-for-each-store test-sightings-from-indicator
   (helpers/set-capabilities! "foouser" "user" all-capabilities)
   (whoami-helpers/set-whoami-response api-key "foouser" "user")
@@ -237,3 +258,24 @@
                     (is (= 200 (:status search-resp)))
                     (is (= (set sighting-ids)
                            (set (map :id (:parsed-body search-resp)))))))))))))))
+
+(deftest-for-each-store test-indicator-routes-search
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response "45c1f5e3f05d0" "foouser" "user")
+  (let [k :negate
+        v true
+        new-indicators (g/sample 2 NewIndicator)]
+    (testing "POST /ctia/indicator GET /ctia/indicator"
+      (let [responses (map #(post "ctia/indicator"
+                                  :body %
+                                  :headers {"api_key" "45c1f5e3f05d0"}) new-indicators)]
+        (doall (map #(is (= 200 (:status %))) responses))
+        (let [expected (set (filter (fn [ind] (= (clojure.core/get ind k)
+                                                 v))
+                                    (map :parsed-body responses)))]
+          (is (deep= expected
+                 (->> (post (str "ctia/indicator/search")
+                            :body {k v}
+                            :headers {"api_key" "45c1f5e3f05d0"})
+                      (map :parsed-body)
+                      set))))))))
