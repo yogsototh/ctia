@@ -1,14 +1,15 @@
 (ns ctia.stores.es.sighting
   (:require
-   [schema.core :as s]
-   [ctia.stores.es.crud :as crud]
-   [ctia.stores.es.query :refer [sightings-by-observables-query]]
-   [ctia.schemas.sighting :refer [Sighting
-                                  NewSighting
-                                  StoredSighting
-                                  realize-sighting]]
-   [ctia.schemas.indicator :refer [Indicator]]
-   [ctia.lib.es.document :refer [search-docs]]))
+    [ctia.domain.id :as id]
+    [ctia.stores.es.crud :as crud]
+    [ctia.stores.es.query :refer [sightings-by-observables-query]]
+    [ctia.schemas.sighting :refer [Sighting
+                                   NewSighting
+                                   StoredSighting
+                                   realize-sighting]]
+    [ctia.schemas.indicator :refer [Indicator]]
+    [ctia.lib.es.document :refer [search-docs]]
+    [schema.core :as s]))
 
 
 (def handle-create-sighting (crud/handle-create :sighting StoredSighting))
@@ -20,8 +21,8 @@
 (def ^{:private true} mapping "sighting")
 
 (defn handle-list-sightings-by-indicators
-  [state indicators params]
-  (let [indicator-ids (mapv :id indicators)]
+  [state indicator-ids params]
+  (let [indicator-ids (mapv id/long-id indicator-ids)]
     (handle-list-sightings state {:type "sighting"
                                   [:indicators :indicator_id]
                                   indicator-ids} params)))

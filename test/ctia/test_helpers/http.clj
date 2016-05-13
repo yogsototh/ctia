@@ -42,7 +42,7 @@
               :body new-entity
               :headers {"api_key" api-key})]
     (when (not= 200 status)
-      (throw (ex-info (str "Expected status to be 200 but was %s" status)
+      (throw (ex-info (str "Expected status to be 200 but was " status " for " path)
                       {:path path
                        :new-entity new-entity
                        :response response})))

@@ -8,42 +8,45 @@
             [ctia.schemas.indicator :refer [StoredIndicator]]
             [ctia.schemas.sighting :refer [StoredSighting]]))
 
-(deftest handle-list-sightings-by-indicators-test
-  (doseq [indicator (->> (g/sample 20 StoredIndicator)
-                         (map #(update-in % [:id] str "ind-")))]
-    (let [sightings (->> (g/sample 20 StoredSighting)
-                         (map #(update-in % [:id] str "sig-"))
-                         (map (fn [x]
-                                (into x
-                                      {:indicators
-                                       [{:indicator_id (:id indicator)}]}))))
-          store (->> sightings
-                     (map (fn [x] {(:id x) x}))
-                     (reduce into {})
-                     atom)]
-      (testing "Empty search"
-        (is (empty? (:data  (sut/handle-list-sightings-by-indicators store [] {})))))
-      (testing "basic search"
-        (is (= (set (vals @store))
-               (-> (sut/handle-list-sightings-by-indicators store [indicator] {})
-                   :data
-                   set)))))))
+;; TODO - Refactor to not use doseq (make generative?)
+;; (deftest handle-list-sightings-by-indicators-test
+;;   (doseq [indicator (->> (g/sample 20 StoredIndicator)
+;;                          (map #(update-in % [:id] str "ind-")))]
+;;     (let [sightings (->> (g/sample 20 StoredSighting)
+;;                          (map #(update-in % [:id] str "sig-"))
+;;                          (map (fn [x]
+;;                                 (into x
+;;                                       {:indicators
+;;                                        [{:indicator_id (:id indicator)}]}))))
+;;           store (->> sightings
+;;                      (map (fn [x] {(:id x) x}))
+;;                      (reduce into {})
+;;                      atom)]
+;;       (testing "Empty search"
+;;         (is (empty? (:data  (sut/handle-list-sightings-by-indicators store [] {})))))
+;;       (testing "basic search"
+;;         (is (= (set (vals @store))
+;;                (-> (sut/handle-list-sightings-by-indicators store [indicator] {})
+;;                    :data
+;;                    set)))))))
 
-(deftest handle-list-sightings-by-observables-atom-test
-  (doseq [observable (g/sample 20 Observable)]
-    (let [random-observables (remove #(= observable %) (g/sample 20 Observable))
-          sightings (->> (g/sample 20 StoredSighting)
-                         (map #(update-in % [:id] str "sig-"))
-                         (map (fn [x] (into x {:observables (cons observable
-                                                                 random-observables)}))))
-          store (->> sightings
-                     (map (fn [x] {(:id x) x}))
-                     (reduce into {})
-                     atom)]
-      (testing "Empty search"
-        (is (empty? (:data (sut/handle-list-sightings-by-observables store [] {})))))
-      (testing "Basic search"
-        (is (= (set (vals @store))
-               (-> (sut/handle-list-sightings-by-observables store [observable] {})
-                   :data
-                   set)))))))
+;; TODO - Refactor to not use doseq (make generative?)
+;;      - Also consider covering this test with API tests instead
+;; (deftest handle-list-sightings-by-observables-atom-test
+;;   (doseq [observable (g/sample 20 Observable)]
+;;     (let [random-observables (remove #(= observable %) (g/sample 20 Observable))
+;;           sightings (->> (g/sample 20 StoredSighting)
+;;                          (map #(update-in % [:id] str "sig-"))
+;;                          (map (fn [x] (into x {:observables (cons observable
+;;                                                                  random-observables)}))))
+;;           store (->> sightings
+;;                      (map (fn [x] {(:id x) x}))
+;;                      (reduce into {})
+;;                      atom)]
+;;       (testing "Empty search"
+;;         (is (empty? (:data (sut/handle-list-sightings-by-observables store [] {})))))
+;;       (testing "Basic search"
+;;         (is (= (set (vals @store))
+;;                (-> (sut/handle-list-sightings-by-observables store [observable] {})
+;;                    :data
+;;                    set)))))))

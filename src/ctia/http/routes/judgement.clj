@@ -18,7 +18,7 @@
    PagingParams
    {(s/optional-key :sort_by) (s/enum :id :feedback :reason)}))
 
-(def ->id
+(def ->long-id
   (id/long-id-factory :judgement
                       #(get-in @properties [:ctia :http :show])))
 
@@ -46,11 +46,12 @@
       :summary "Adds a Feedback to a Judgement"
       :capabilities #{:create-feedback :admin}
       :login login
-      (ok (flows/create-flow :realize-fn #(realize-feedback %1 %2 %3 (->id judgement-id))
-                             :store-fn #(create-feedback @feedback-store %)
-                             :entity-type :feedback
-                             :login login
-                             :entity feedback)))
+      (ok (flows/create-flow
+           :realize-fn #(realize-feedback %1 %2 %3 (->long-id judgement-id))
+           :store-fn #(create-feedback @feedback-store %)
+           :entity-type :feedback
+           :login login
+           :entity feedback)))
     (GET "/:judgement-id/feedback" []
       :tags ["Feedback"]
       :return (s/maybe [StoredFeedback])
@@ -59,7 +60,9 @@
       :header-params [api_key :- (s/maybe s/Str)]
       :capabilities #{:read-feedback :admin}
       :summary "Gets all Feedback for this Judgement."
-      (if-let [d (list-feedback @feedback-store {:judgement (->id judgement-id)} params)]
+      (if-let [d (list-feedback @feedback-store
+                                {:judgement (->long-id judgement-id)}
+                                params)]
         (paginated-ok d)
         (not-found)))
     (POST "/:judgement-id/indicator" []

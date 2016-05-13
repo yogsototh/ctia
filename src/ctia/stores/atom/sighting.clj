@@ -1,5 +1,7 @@
 (ns ctia.stores.atom.sighting
-(:require [ctia.schemas.indicator :refer [StoredIndicator]]
+  (:require [clojure.tools.logging :as log]
+            [ctia.domain.id :as id]
+            [ctia.schemas.indicator :refer [StoredIndicator]]
             [ctia.schemas.sighting
              :refer [NewSighting StoredSighting realize-sighting]]
             [ctia.store :refer [ISightingStore]]
@@ -16,11 +18,16 @@
 
 (s/defn handle-list-sightings-by-indicators :- (list-response-schema StoredSighting)
   [sightings-state :- (s/atom {s/Str StoredSighting})
-   indicators :- (s/maybe [StoredIndicator])
+   indicator-ids :- (s/maybe [(s/protocol id/ID)])
    params]
-
-  (let [indicators-set (set (map (fn [ind] {:indicator_id (:id ind)})
-                                 indicators))]
+  (log/info {:message "handle-list-sightings-by-indicators"
+             :part 1
+             :indicators-ids indicator-ids
+             :params params})
+  (let [indicators-set (->> indicator-ids
+                            (map (fn [id]
+                                   {:indicator_id (id/long-id id)}))
+                            set)]
     (handle-list-sightings sightings-state
                            {:indicators indicators-set} params)))
 
