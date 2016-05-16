@@ -4,6 +4,7 @@
              [judgement :refer [StoredJudgement]]]
             [ctia.lib.pagination :refer [list-response-schema]]
             [ctia.stores.atom.common :as mc]
+            [ctia.domain.id :as id]
             [schema.core :as s]))
 
 (def handle-create-indicator (mc/create-handler-from-realized StoredIndicator))
@@ -12,12 +13,9 @@
 (def handle-delete-indicator (mc/delete-handler StoredIndicator))
 (def handle-list-indicators (mc/list-handler StoredIndicator))
 
-(s/defn handle-list-indicators-by-judgements :- (list-response-schema StoredIndicator)
+(s/defn handle-list-indicators-by-ids :- (list-response-schema StoredIndicator)
   [indicator-state :- (s/atom {s/Str StoredIndicator})
-   judgements :- [StoredJudgement]
+   ids :- (s/maybe [(s/protocol id/ID)])
    params]
-  (let [indicator-ids (some->> (map :indicators judgements)
-                               (mapcat #(map :indicator_id %))
-                               set)]
-
+  (let [indicator-ids (set (map short-id ids))]
     (handle-list-indicators indicator-state {:id indicator-ids} params)))

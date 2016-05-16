@@ -1,5 +1,7 @@
 (ns ctia.http.routes.observable
   (:require
+   [ctia.domain.id :as id]
+   [ctia.properties :refer [properties]]
    [compojure.api.sweet :refer :all]
    [ctia.http.routes.common :refer [paginated-ok PagingParams]]
    [ctia.schemas
@@ -32,6 +34,11 @@
    {(s/optional-key :sort_by) (s/enum :id :timestamp :confidence)}))
 
 
+(defn ->id [indicator-id]
+  (id/->id :indicator
+           indicator-id
+           (get-in @properties [:ctia :http :show])))
+
 (defroutes observable-routes
   (GET "/:observable_type/:observable_value/judgements" []
     :tags ["Judgement"]
@@ -61,6 +68,8 @@
               :value observable_value} $
          (list-judgements-by-observable @judgement-store $ nil)
          (:data $ [])
+         (mapcat :indicators $)
+         (map (comp ->id :indicator_id) $)
          (list-indicators-by-judgements @indicator-store $ params)))
       (catch Exception e
         (clojure.pprint/pprint e))))
