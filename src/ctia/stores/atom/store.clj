@@ -105,8 +105,8 @@
     (indicator/handle-delete-indicator state id))
   (list-indicators [_ filter-map params]
     (indicator/handle-list-indicators state filter-map params))
-  (list-indicators-by-judgements [_ judgements params]
-    (indicator/handle-list-indicators-by-judgements state judgements params)))
+  (list-indicators-by-ids [_ ids params]
+    (indicator/handle-list-indicators-by-ids state ids params)))
 
 (defrecord JudgementStore [state]
   IJudgementStore

@@ -2,6 +2,7 @@
   (:import java.util.UUID)
   (:require
    [schema.core :as s]
+   [ctia.domain.id :as id]
    [ctia.stores.es.crud :as crud]
    [ctia.schemas.common :refer [Observable]]
    [ctia.schemas.indicator :refer [Indicator
@@ -20,16 +21,12 @@
 (def ^{:private true} mapping "indicator")
 
 
-(defn handle-list-indicators-by-judgements
-  [state judgements params]
-  (let [ids (some->> judgements
-                     (map :indicators)
-                     (mapcat #(map :indicator_id %))
-                     set)]
-    (when ids
-      (search-docs (:conn state)
-                   (:index state)
-                   mapping
-                   {:type "indicator"
-                    :id (vec ids)}
-                   params))))
+(defn handle-list-indicators-by-ids
+  [state ids params]
+  (when ids
+    (search-docs (:conn state)
+                 (:index state)
+                 mapping
+                 {:type "indicator"
+                  :id (mapv id/short-id ids)}
+                 params)))

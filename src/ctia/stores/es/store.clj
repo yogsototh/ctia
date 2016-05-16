@@ -93,8 +93,8 @@
     (in/handle-delete-indicator state id))
   (list-indicators [_ filter-map params]
     (in/handle-list-indicators state filter-map params))
-  (list-indicators-by-judgements [_ judgements params]
-    (in/handle-list-indicators-by-judgements state judgements params)))
+  (list-indicators-by-ids [_ ids params]
+    (in/handle-list-indicators-by-ids state ids params)))
 
 (defrecord TTPStore [state]
   ITTPStore

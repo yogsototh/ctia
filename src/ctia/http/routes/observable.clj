@@ -70,7 +70,7 @@
          (:data $ [])
          (mapcat :indicators $)
          (map (comp ->id :indicator_id) $)
-         (list-indicators-by-judgements @indicator-store $ params)))
+         (list-indicators-by-ids @indicator-store $ params)))
       (catch Exception e
         (clojure.pprint/pprint e))))
 

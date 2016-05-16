@@ -17,5 +17,5 @@
   [indicator-state :- (s/atom {s/Str StoredIndicator})
    ids :- (s/maybe [(s/protocol id/ID)])
    params]
-  (let [indicator-ids (set (map short-id ids))]
+  (let [indicator-ids (set (map id/short-id ids))]
     (handle-list-indicators indicator-state {:id indicator-ids} params)))
