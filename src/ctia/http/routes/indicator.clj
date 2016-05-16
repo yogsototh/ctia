@@ -1,7 +1,9 @@
 (ns ctia.http.routes.indicator
   (:require [compojure.api.sweet :refer :all]
+            [ctia.domain.id :as id]
             [ctia.flows.crud :as flows]
             [ctia.http.routes.common :refer [PagingParams paginated-ok]]
+            [ctia.properties :refer [properties]]
             [ctia.schemas
              [campaign :refer [StoredCampaign]]
              [coa :refer [StoredCOA]]
@@ -29,6 +31,11 @@
   (st/merge
    PagingParams
    {(s/optional-key :sort_by) (s/enum :id :timestamp :description :source :confidence)}))
+
+(defn ->id [indicator-id]
+  (id/->id :indicator
+           indicator-id
+           (get-in @properties [:ctia :http :show])))
 
 (defroutes indicator-routes
   (context "/indicator" []
@@ -106,15 +113,6 @@
       :path-params [id :- s/Str]
       :header-params [api_key :- (s/maybe s/Str)]
       :capabilities #{:read-indicator :admin}
-      ;; :description "This is a little decription"
-      ;; :query-params [{offset :-  Long {:summary "asdads" :default 0}}
-      ;;                {limit :-  Long 0}
-      ;;                {after :-  Time nil}
-      ;;                {before :-  Time nil}
-      ;;                {sort_by :- IndicatorSort "timestamp"}
-      ;;                {sort_order :- SortOrder "desc"}
-      ;;                {source :- s/Str nil}
-      ;;                {observable :- ObservableType nil}]
       (if-let [d (read-indicator @indicator-store id)]
         (ok d)
         (not-found)))
@@ -123,8 +121,10 @@
       :path-params [id :- s/Str]
       :query [params SightingsByIndicatorQueryParams]
       :summary "Gets all Sightings associated with the Indicator"
-      (if-let [indicator (read-indicator @indicator-store id)]
-        (if-let [sightings (list-sightings-by-indicators @sighting-store [indicator] params)]
+      (if (read-indicator @indicator-store id)
+        (if-let [sightings (list-sightings-by-indicators @sighting-store
+                                                         [(->id id)]
+                                                         params)]
           (paginated-ok sightings)
           (not-found))
         (not-found)))
@@ -135,6 +135,5 @@
       :path-params [title :- s/Str]
       :header-params [api_key :- (s/maybe s/Str)]
       :capabilities #{:list-indicators-by-title :admin}
-
       (paginated-ok
        (list-indicators @indicator-store {:title title} params)))))

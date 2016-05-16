@@ -1,5 +1,7 @@
 (ns ctia.test-helpers.generators.schemas
   (:require [clojure.test.check.generators :as gen]
+            [ctia.domain.id :as id]
+            [ctia.properties :refer [properties]]
             [ctia.schemas
              [feedback :refer [Feedback]]
              [identity :refer [Identity]]
@@ -18,12 +20,17 @@
 
 (def gen-new-indicator-with-new-sightings
   (gen/fmap
-   (fn [[indicator sightings]]
-     [indicator
-      (map (fn [sighting]
-             (assoc sighting :indicators
-                    [{:indicator_id (:id indicator)}]))
-           sightings)])
+   (fn [[{id :id :as indicator} sightings]]
+     (let [indicator-url-id
+           (id/long-id
+            (id/short-id->id :indicator
+                             id
+                             (get-in @properties [:ctia :http :show])))]
+       [indicator
+        (map (fn [sighting]
+               (assoc sighting :indicators
+                      [{:indicator_id indicator-url-id}]))
+             sightings)]))
    (gen/tuple ng/gen-new-indicator-with-id
               (gen/vector sg/gen-new-sighting 1 10))))
 
