@@ -55,12 +55,15 @@
     :summary "Returns all the Indicators associated with the specified observable."
     :header-params [api_key :- (s/maybe s/Str)]
     :capabilities #{:list-indicators-by-observable :admin}
-    (paginated-ok
-     (as-> {:type observable_type
-            :value observable_value} $
-       (list-judgements-by-observable @judgement-store $ nil)
-       (:data $ [])
-       (list-indicators-by-judgements @indicator-store $ params))))
+    (try
+      (paginated-ok
+       (as-> {:type observable_type
+              :value observable_value} $
+         (list-judgements-by-observable @judgement-store $ nil)
+         (:data $ [])
+         (list-indicators-by-judgements @indicator-store $ params)))
+      (catch Exception e
+        (clojure.pprint/pprint e))))
 
   (GET "/:observable_type/:observable_value/sightings" []
     :tags ["Sighting"]

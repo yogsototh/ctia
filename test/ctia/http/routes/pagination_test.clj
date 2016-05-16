@@ -65,9 +65,6 @@
                               (-> indicators first :title))
                          {"api_key" "45c1f5e3f05d0"}
                          [:id :title])
-        (clojure.pprint/pprint [(-> created-indicators first :id url/encode)
-                                @(:state @ctia.store/sighting-store)
-                                @(:state @ctia.store/indicator-store)])
         (pagination-test (str "/ctia/indicator/"
                               (-> created-indicators first :id url/encode)
                               "/sightings")

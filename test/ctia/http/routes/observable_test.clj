@@ -1,18 +1,25 @@
 (ns ctia.http.routes.observable-test
   (:refer-clojure :exclude [get])
   (:require
-    [clojure.test :refer [deftest is testing use-fixtures join-fixtures]]
-    [ctia.lib.url :as url]
-    [ctia.test-helpers.core :refer [delete get post put] :as helpers]
-    [ctia.test-helpers.fake-whoami-service :as whoami-helpers]
-    [ctia.test-helpers.store :refer [deftest-for-each-store]]
-    [ctia.test-helpers.auth :refer [all-capabilities]]))
+   [ctia.domain.id :as id]
+   [ctia.properties :refer [properties]]
+   [clojure.test :refer [deftest is testing use-fixtures join-fixtures]]
+   [ctia.lib.url :as url]
+   [ctia.test-helpers.core :refer [delete get post put] :as helpers]
+   [ctia.test-helpers.fake-whoami-service :as whoami-helpers]
+   [ctia.test-helpers.store :refer [deftest-for-each-store]]
+   [ctia.test-helpers.auth :refer [all-capabilities]]))
 
 (use-fixtures :once (join-fixtures [helpers/fixture-schema-validation
                                     helpers/fixture-properties:clean
                                     whoami-helpers/fixture-server]))
 
 (use-fixtures :each whoami-helpers/fixture-reset-state)
+
+(def ->long-id
+  "Fn to convert indicator short IDs into long IDs"
+  (id/long-id-factory :indicator
+                      #(get-in @properties [:ctia :http :show])))
 
 (deftest-for-each-store test-get-things-by-observable-routes
   (helpers/set-capabilities! "foouser" "user" all-capabilities)
@@ -51,7 +58,7 @@
                      :source "foo"
                      :confidence "Medium"
                      :description "sighting 1"
-                     :indicators [{:indicator_id indicator-1-id}]
+                     :indicators [{:indicator_id (->long-id indicator-1-id)}]
                      :observables [{:value "1.2.3.4"
                                      :type "ip"}]
                      :tlp "red"}
@@ -64,7 +71,7 @@
                      :source "bar"
                      :confidence "High"
                      :description "sighting 2"
-                     :indicators [{:indicator_id indicator-1-id}]
+                     :indicators [{:indicator_id (->long-id indicator-1-id)}]
                      :observables [{:value "1.2.3.4"
                                      :type "ip"}]
                      :tlp "red"}
@@ -72,7 +79,7 @@
 
         {judgement-1-update-status :status}
         (post (str "ctia/judgement/" judgement-1-id "/indicator")
-              :body {:indicator_id indicator-1-id}
+              :body {:indicator_id (->long-id indicator-1-id)}
               :headers {"api_key" "45c1f5e3f05d0"})
 
         {{judgement-2-id :id} :parsed-body
@@ -109,7 +116,7 @@
                      :source "spam"
                      :confidence "None"
                      :description "sighting 3"
-                     :indicators [{:indicator_id indicator-2-id}]
+                     :indicators [{:indicator_id (->long-id indicator-2-id)}]
                      :observables [{:value "10.0.0.1"
                                      :type "ip"}]
                      :tlp "red"}
@@ -117,7 +124,7 @@
 
         {judgement-2-update-status :status}
         (post (str "ctia/judgement/" judgement-2-id "/indicator")
-              :body {:indicator_id indicator-2-id}
+              :body {:indicator_id (->long-id indicator-2-id)}
               :headers {"api_key" "45c1f5e3f05d0"})
 
         {{judgement-3-id :id} :parsed-body
@@ -154,7 +161,7 @@
                      :source "foo"
                      :confidence "High"
                      :description "sighting 4"
-                     :indicators [{:indicator_id indicator-3-id}]
+                     :indicators [{:indicator_id (->long-id indicator-3-id)}]
                      :observables [{:value "10.0.0.1"
                                      :type "ip"}]
                      :tlp "red"}
@@ -167,7 +174,7 @@
                      :source "bar"
                      :confidence "Low"
                      :description "sighting 5"
-                     :indicators [{:indicator_id indicator-3-id}]
+                     :indicators [{:indicator_id (->long-id indicator-3-id)}]
                      :observables [{:value "10.0.0.1"
                                      :type "ip"}]
                      :tlp "red"}
@@ -175,7 +182,7 @@
 
         {judgement-3-update-status :status}
         (post (str "ctia/judgement/" judgement-3-id "/indicator")
-              :body {:indicator_id indicator-3-id}
+              :body {:indicator_id (->long-id indicator-3-id)}
               :headers {"api_key" "45c1f5e3f05d0"})]
 
     (testing "With successful test setup"
@@ -211,7 +218,7 @@
                 :priority 100
                 :severity 100
                 :confidence "High"
-                :indicators [{:indicator_id indicator-2-id}]
+                :indicators [{:indicator_id (->long-id indicator-2-id)}]
                 :valid_time {:start_time #inst "2016-02-01T00:00:00.000-00:00"
                              :end_time #inst "2525-01-01T00:00:00.000-00:00"}
                 :tlp "red"
@@ -226,7 +233,7 @@
                 :priority 100
                 :severity 100
                 :confidence "Low"
-                :indicators [{:indicator_id indicator-3-id}]
+                :indicators [{:indicator_id (->long-id indicator-3-id)}]
                 :valid_time {:start_time #inst "2016-02-01T00:00:00.000-00:00"
                              :end_time #inst "2525-01-01T00:00:00.000-00:00"}
                 :tlp "red"
@@ -280,7 +287,7 @@
                 :source "spam"
                 :confidence "None"
                 :description "sighting 3"
-                :indicators [{:indicator_id indicator-2-id}]
+                :indicators [{:indicator_id (->long-id indicator-2-id)}]
                 :observables [{:value "10.0.0.1"
                                :type "ip"}]
                 :owner "foouser"
@@ -291,7 +298,7 @@
                 :source "foo"
                 :confidence "High"
                 :description "sighting 4"
-                :indicators [{:indicator_id indicator-3-id}]
+                :indicators [{:indicator_id (->long-id indicator-3-id)}]
                 :observables [{:value "10.0.0.1"
                                :type "ip"}]
                 :owner "foouser"
@@ -302,7 +309,7 @@
                 :source "bar"
                 :confidence "Low"
                 :description "sighting 5"
-                :indicators [{:indicator_id indicator-3-id}]
+                :indicators [{:indicator_id (->long-id indicator-3-id)}]
                 :observables [{:value "10.0.0.1"
                                :type "ip"}]
                 :owner "foouser"

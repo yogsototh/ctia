@@ -2,6 +2,8 @@
   (:refer-clojure :exclude [get])
   (:require [clojure.test :refer [is join-fixtures testing use-fixtures]]
             [clojure.tools.logging :as log]
+            [ctia.domain.id :as id]
+            [ctia.properties :refer [properties]]
             [ctia.schemas
              [campaign :refer [NewCampaign]]
              [coa :refer [NewCOA]]
@@ -203,6 +205,11 @@
    :negate false
    :confidence "Unknown"})
 
+(def ->long-id
+  "Fn to convert indicator short IDs into long IDs"
+  (id/long-id-factory :indicator
+                      #(get-in @properties [:ctia :http :show])))
+
 (deftest-for-each-store test-sightings-from-indicator
   (helpers/set-capabilities! "foouser" "user" all-capabilities)
   (whoami-helpers/set-whoami-response api-key "foouser" "user")
@@ -235,7 +242,7 @@
       (when-let [indicator (test-post "ctia/indicator" new-indicator)]
         (testing "POST /ctia/sighting"
           (let [new-sightings (map #(into % {:indicators
-                                             [{:indicator_id (:id indicator)}]})
+                                             [{:indicator_id (->long-id (:id indicator))}]})
                                    sightings-seed)
                 sightings (doall (map #(assert-post "ctia/sighting" %) new-sightings))]
             (testing "GET /ctia/indicator/:id/sightings"

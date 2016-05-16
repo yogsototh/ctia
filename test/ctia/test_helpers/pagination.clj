@@ -5,10 +5,11 @@
 
 (defn total->limit [total offset]
   "make a limit from a full list total and offset"
-  (-> (/ total 2)
-      Math/ceil
-      Math/round
-      (- offset)))
+  (max 0
+       (-> (/ total 2)
+           Math/ceil
+           Math/round
+           (- offset))))
 
 (defn limit-test [route headers]
   "test a list route with limit query param"
