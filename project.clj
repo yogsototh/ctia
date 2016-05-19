@@ -10,8 +10,8 @@
              "-server"]
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [clj-time "0.9.0"] ; required due to bug in lein-ring
-                 [prismatic/schema "1.0.5"]
-                 [metosin/schema-tools "0.7.0"
+                 [prismatic/schema "1.1.1"]
+                 [metosin/schema-tools "0.9.0"
                   :exclusions [prismatic/schema]]
                  [com.rpl/specter "0.9.2"]
                  [org.clojure/core.async "0.2.374"]
@@ -67,6 +67,7 @@
 
   :java-source-paths ["hooks/ctia"]
   :javac-options  ["-proc:none"] ;; remove a warning
+  :aliases {"genschema" ["with-profile" "genschema" "run"]}
   :profiles {:dev {:dependencies [[cheshire "5.5.0"]
                                   [com.h2database/h2 "1.4.191"]
                                   [org.clojure/test.check "0.9.0"]
@@ -75,7 +76,8 @@
                                    :exclusions [prismatic/schema]]]
                    :resource-paths ["model"
                                     "test/resources"]}
-
+             :genschema {:dependencies [[metosin/schema-viz "0.1.1"]]
+                         :main ctia.genschema }
              :test {:dependencies [[cheshire "5.5.0"]
                                    [com.h2database/h2 "1.4.191"]
                                    [org.clojure/test.check "0.9.0"]
