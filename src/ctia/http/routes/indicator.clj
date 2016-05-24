@@ -1,26 +1,18 @@
 (ns ctia.http.routes.indicator
   (:require [compojure.api.sweet :refer :all]
+            [ctia
+             [properties :refer [properties]]
+             [store :refer :all]]
             [ctia.domain.id :as id]
-            [ctia.properties :refer [properties]]
             [ctia.flows.crud :as flows]
-            [ctia.http.routes.common :refer [PagingParams paginated-ok]]
+            [ctia.http.routes.common :refer [paginated-ok PagingParams]]
             [ctia.schemas
-             [campaign :refer [StoredCampaign]]
-             [coa :refer [StoredCOA]]
-             [indicator :refer [generalize-indicator
-                                NewIndicator
-                                realize-indicator
-                                StoredIndicator]]
-             [judgement :refer [StoredJudgement]]
-             [sighting :refer [NewSighting
-                               realize-sighting
-                               StoredSighting]]
-             [ttp :refer [StoredTTP]]]
-            [ctia.store :refer :all]
+             [common :as c]
+             [indicator :refer [NewIndicator realize-indicator StoredIndicator]]
+             [sighting :refer [StoredSighting]]]
             [ring.util.http-response :refer :all]
             [schema-tools.core :as st]
             [schema.core :as s]))
-
 
 (s/defschema IndicatorsByTitleQueryParams
   (st/merge
@@ -102,6 +94,23 @@
       :capabilities :read-indicator
       (paginated-ok
        (list-indicators @indicator-store {:title title} params))))
+  (context "/indicators" []
+    :tags ["Indicator"]
+    (POST "/" []
+      :return [c/ID]
+      :body [indicators [NewIndicator] {:description "a list of new Indicator"}]
+      :header-params [api_key :- (s/maybe s/Str)]
+      :summary "Adds a list of new Indicator"
+      :capabilities :create-indicator
+      :login login
+      (ok (map (fn [indicator]
+                 (-> (flows/create-flow :entity-type :indicator
+                                        :realize-fn realize-indicator
+                                        :store-fn #(create-indicator @indicator-store %)
+                                        :login login
+                                        :entity indicator)
+                     :id))
+               indicators))))
   (GET "/judgement/:id/indicators" []
     :tags ["Indicator"]
     :return (s/maybe [StoredIndicator])

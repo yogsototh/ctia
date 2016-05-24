@@ -1,6 +1,7 @@
 (ns ctia.http.routes.sighting-test
   (:refer-clojure :exclude [get])
   (:require [clojure.test :refer [is join-fixtures testing use-fixtures]]
+            [ctia.lib.url :as u]
             [ctia.test-helpers
              [auth :refer [all-capabilities]]
              [core :as helpers :refer [delete get post put]]
@@ -125,3 +126,30 @@
                :headers {"api_key" api-key})]
       (is (= 200 post-status))
       (is (= 422 put-status)))))
+
+
+(deftest-for-each-store test-sighting-multi-route
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response api-key "foouser" "user")
+  (testing "POST /ctia/sightings"
+    (let [sightings (map (fn [nb]
+                           {:id (str "sighting-" nb)
+                            :description (str "sighting-" nb)
+                            :timestamp #inst "2016-02-11T00:40:48.212-00:00"
+                            :tlp "yellow"
+                            :source "source"
+                            :source_device "endpoint.sensor"
+                            :confidence "High"
+                            :indicators [{:indicator_id "indicator-22334455"}]})
+                      [1 2 3])
+          sighting-keys (keys (first sightings))
+          response (post "ctia/sightings"
+                         :body sightings
+                         :headers {"api_key" api-key})
+          ids (:parsed-body response)
+          retrieved-sightings (doall (map #(-> (get (str "ctia/sighting/" (u/encode %))
+                                                 :headers {"api_key" api-key})
+                                            :parsed-body)
+                                       ids))]
+      (is (= sightings
+             (map #(select-keys % sighting-keys) retrieved-sightings))))))

@@ -1,9 +1,9 @@
 (ns ctia.http.routes.sighting
-  (:require [ctia.flows.crud :as flows]
-            [compojure.api.sweet :refer :all]
-            [ctia.schemas.sighting
-             :refer
-             [NewSighting realize-sighting StoredSighting check-new-sighting]]
+  (:require [compojure.api.sweet :refer :all]
+            [ctia.flows.crud :as flows]
+            [ctia.schemas
+             [common :as c]
+             [sighting :refer [check-new-sighting NewSighting realize-sighting StoredSighting]]]
             [ctia.store :refer :all]
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
@@ -58,4 +58,21 @@
       :capabilities :delete-sighting
       (if (delete-sighting @sighting-store id)
         (no-content)
-        (not-found)))))
+        (not-found))))
+  (context "/sightings" []
+    :tags ["Sighting"]
+    (POST "/" []
+      :return [c/ID]
+      :body [sightings [NewSighting] {:description "a list of new Sighting"}]
+      :header-params [api_key :- (s/maybe s/Str)]
+      :summary "Adds a list of new Sighting"
+      :capabilities :create-sighting
+      :login login
+      (ok (map (fn [sighting]
+                 (-> (flows/create-flow :entity-type :sighting
+                                        :realize-fn realize-sighting
+                                        :store-fn #(create-sighting @sighting-store %)
+                                        :login login
+                                        :entity sighting)
+                     :id))
+               sightings)))))

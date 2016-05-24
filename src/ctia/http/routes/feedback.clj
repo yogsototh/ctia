@@ -2,9 +2,9 @@
   (:require [compojure.api.sweet :refer :all]
             [ctia.flows.crud :as flows]
             [ctia.http.routes.common :refer [paginated-ok PagingParams]]
-            [ctia.schemas.feedback
-             :refer
-             [NewFeedback realize-feedback StoredFeedback]]
+            [ctia.schemas
+             [common :as c]
+             [feedback :refer [NewFeedback realize-feedback StoredFeedback]]]
             [ctia.store :refer :all]
             [ring.util.http-response :refer :all]
             [schema-tools.core :as st]
@@ -64,4 +64,21 @@
                              :id id
                              :login login)
         (no-content)
-        (not-found)))))
+        (not-found))))
+  (context "/feedbacks" []
+    :tags ["Feedback"]
+    (POST "/" []
+      :return [c/ID]
+      :body [feedbacks [NewFeedback] {:description "a list of new Feedback"}]
+      :header-params [api_key :- (s/maybe s/Str)]
+      :summary "Adds a list of new Feedback"
+      :capabilities :create-feedback
+      :login login
+      (ok (map (fn [feedback]
+                 (-> (flows/create-flow :entity-type :feedback
+                                        :realize-fn realize-feedback
+                                        :store-fn #(create-feedback @feedback-store %)
+                                        :login login
+                                        :entity feedback)
+                     :id))
+               feedbacks)))))

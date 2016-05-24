@@ -1,10 +1,12 @@
 (ns ctia.http.routes.coa
-  (:require [schema.core :as s]
-            [compojure.api.sweet :refer :all]
-            [ring.util.http-response :refer :all]
+  (:require [compojure.api.sweet :refer :all]
             [ctia.flows.crud :as flows]
+            [ctia.schemas
+             [coa :refer [NewCOA realize-coa StoredCOA]]
+             [common :as c]]
             [ctia.store :refer :all]
-            [ctia.schemas.coa :refer [NewCOA StoredCOA realize-coa]]))
+            [ring.util.http-response :refer :all]
+            [schema.core :as s]))
 
 (defroutes coa-routes
   (context "/coa" []
@@ -58,4 +60,21 @@
                              :id id
                              :login login)
         (no-content)
-        (not-found)))))
+        (not-found))))
+  (context "/coas" []
+    :tags ["COA"]
+    (POST "/" []
+      :return [c/ID]
+      :body [coas [NewCOA] {:description "a list of new COA"}]
+      :header-params [api_key :- (s/maybe s/Str)]
+      :summary "Adds a list of new COA"
+      :capabilities :create-coa
+      :login login
+      (ok (map (fn [coa]
+                 (-> (flows/create-flow :entity-type :coa
+                                        :realize-fn realize-coa
+                                        :store-fn #(create-coa @coa-store %)
+                                        :login login
+                                        :entity coa)
+                     :id))
+               coas)))))

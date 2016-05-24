@@ -1,17 +1,18 @@
 (ns ctia.http.routes.judgement
   (:require [compojure.api.sweet :refer :all]
+            [ctia
+             [properties :refer [properties]]
+             [store :refer :all]]
             [ctia.domain.id :as id]
             [ctia.flows.crud :as flows]
-            [ctia.http.routes.common :refer [paginated-ok PagingParams]]
-            [ctia.properties :refer [properties]]
+            [ctia.http.routes.common :refer [PagingParams]]
             [ctia.schemas
-             [feedback :refer [NewFeedback realize-feedback StoredFeedback]]
+             [common :as c]
              [judgement :refer [NewJudgement realize-judgement StoredJudgement]]
              [relationships :as rel]]
-            [ctia.store :refer :all]
             [ring.util.http-response :refer :all]
-            [schema.core :as s]
-            [schema-tools.core :as st]))
+            [schema-tools.core :as st]
+            [schema.core :as s]))
 
 (s/defschema FeedbacksByJudgementQueryParams
   (st/merge
@@ -71,4 +72,21 @@
                              :id id
                              :login login)
         (no-content)
-        (not-found)))))
+        (not-found))))
+  (context "/judgements" []
+    :tags ["Judgement"]
+    (POST "/" []
+      :return [c/ID]
+      :body [judgements [NewJudgement] {:description "a list of new Judgement"}]
+      :header-params [api_key :- (s/maybe s/Str)]
+      :summary "Adds a list of new Judgement"
+      :capabilities :create-judgement
+      :login login
+      (ok (map (fn [judgement]
+                 (-> (flows/create-flow :entity-type :judgement
+                                        :realize-fn realize-judgement
+                                        :store-fn #(create-judgement @judgement-store %)
+                                        :login login
+                                        :entity judgement)
+                     :id))
+               judgements)))))

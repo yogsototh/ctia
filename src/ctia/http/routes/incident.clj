@@ -1,12 +1,12 @@
 (ns ctia.http.routes.incident
-  (:require [schema.core :as s]
-            [compojure.api.sweet :refer :all]
-            [ring.util.http-response :refer :all]
+  (:require [compojure.api.sweet :refer :all]
             [ctia.flows.crud :as flows]
+            [ctia.schemas
+             [common :as c]
+             [incident :refer [NewIncident realize-incident StoredIncident]]]
             [ctia.store :refer :all]
-            [ctia.schemas.incident :refer [NewIncident
-                                           StoredIncident
-                                           realize-incident]]))
+            [ring.util.http-response :refer :all]
+            [schema.core :as s]))
 
 (defroutes incident-routes
 
@@ -61,4 +61,21 @@
                              :id id
                              :login login)
         (no-content)
-        (not-found)))))
+        (not-found))))
+  (context "/incidents" []
+    :tags ["Incident"]
+    (POST "/" []
+      :return [c/ID]
+      :body [incidents [NewIncident] {:description "a list of new Incident"}]
+      :header-params [api_key :- (s/maybe s/Str)]
+      :summary "Adds a list of new Incident"
+      :capabilities :create-incident
+      :login login
+      (ok (map (fn [incident]
+                 (-> (flows/create-flow :entity-type :incident
+                                        :realize-fn realize-incident
+                                        :store-fn #(create-incident @incident-store %)
+                                        :login login
+                                        :entity incident)
+                     :id))
+               incidents)))))

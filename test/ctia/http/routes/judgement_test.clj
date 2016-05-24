@@ -1,15 +1,16 @@
 (ns ctia.http.routes.judgement-test
   (:refer-clojure :exclude [get])
-  (:require
-   [clojure.test :refer [deftest is testing use-fixtures join-fixtures]]
-   [ctia.domain.id :as id]
-   [ctia.properties :refer [properties]]
-   [ctia.schemas.common :as scheams-common]
-   [ctia.test-helpers.auth :refer [all-capabilities]]
-   [ctia.test-helpers.core :refer [delete get post put] :as helpers]
-   [ctia.test-helpers.fake-whoami-service :as whoami-helpers]
-   [ctia.test-helpers.pagination :refer [pagination-test]]
-   [ctia.test-helpers.store :refer [deftest-for-each-store]]))
+  (:require [clojure.test :refer [is join-fixtures testing use-fixtures]]
+            [ctia.domain.id :as id]
+            [ctia.lib.url :as u]
+            [ctia.properties :refer [properties]]
+            [ctia.test-helpers
+             [auth :refer [all-capabilities]]
+             [core :as helpers :refer [delete get post]]
+             [fake-whoami-service :as whoami-helpers]
+             [http :refer [api-key]]
+             [pagination :refer [pagination-test]]
+             [store :refer [deftest-for-each-store]]]))
 
 (use-fixtures :once (join-fixtures [helpers/fixture-schema-validation
                                     helpers/fixture-properties:clean
@@ -312,3 +313,31 @@
    "ctia/ip/1.2.3.4/judgements"
    {"api_key" "45c1f5e3f05d0"}
    [:id :disposition :priority :severity :confidence]))
+
+(deftest-for-each-store test-judgement-multi-route
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response api-key "foouser" "user")
+  (testing "POST /ctia/judgements"
+    (let [judgements (map (fn [nb]
+                            {:observable {:value "1.2.3.4" :type "ip"}
+                             :disposition 5
+                             :disposition_name "Unknown"
+                             :source (str "source-" nb)
+                             :priority 100
+                             :severity 100
+                             :confidence "Low"
+                             :valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
+                                          :end_time #inst "2017-02-11T00:40:48.212-00:00"}})
+                          [1 2 3])
+          judgement-keys (keys (first judgements))
+          response (post "ctia/judgements"
+                         :body judgements
+                         :headers {"api_key" api-key})
+          ids (:parsed-body response)
+          retrieved-judgements (doall (map #(-> (get (str "ctia/judgement/" (u/encode %))
+                                                     :headers {"api_key" api-key})
+                                                :parsed-body)
+                                           ids))]
+      (is (= judgements
+             (map #(select-keys % judgement-keys) retrieved-judgements))))))
+

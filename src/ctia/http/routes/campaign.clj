@@ -1,10 +1,12 @@
 (ns ctia.http.routes.campaign
-  (:require [schema.core :as s]
-            [compojure.api.sweet :refer :all]
-            [ring.util.http-response :refer :all]
+  (:require [compojure.api.sweet :refer :all]
             [ctia.flows.crud :as flows]
-            [ctia.schemas.campaign :refer [NewCampaign StoredCampaign realize-campaign]]
-            [ctia.store :refer :all]))
+            [ctia.schemas
+             [campaign :refer [NewCampaign realize-campaign StoredCampaign]]
+             [common :as c]]
+            [ctia.store :refer :all]
+            [ring.util.http-response :refer :all]
+            [schema.core :as s]))
 
 (defroutes campaign-routes
   (context "/campaign" []
@@ -58,4 +60,21 @@
                              :id id
                              :login login)
         (no-content)
-        (not-found)))))
+        (not-found))))
+  (context "/campaigns" []
+    :tags ["Campaign"]
+    (POST "/" []
+      :return [c/ID]
+      :body [campaigns [NewCampaign] {:description "a list of new Campaign"}]
+      :header-params [api_key :- (s/maybe s/Str)]
+      :summary "Adds a list of new Campaign"
+      :capabilities :create-campaign
+      :login login
+      (ok (map (fn [campaign]
+                 (-> (flows/create-flow :entity-type :campaign
+                                        :realize-fn realize-campaign
+                                        :store-fn #(create-campaign @campaign-store %)
+                                        :login login
+                                        :entity campaign)
+                     :id))
+               campaigns)))))

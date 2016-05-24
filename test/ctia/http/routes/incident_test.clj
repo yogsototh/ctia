@@ -1,12 +1,13 @@
 (ns ctia.http.routes.incident-test
   (:refer-clojure :exclude [get])
-  (:require
-   [clojure.test :refer [deftest is testing use-fixtures join-fixtures]]
-   [ctia.test-helpers.core :refer [delete get post put] :as helpers]
-   [ctia.test-helpers.fake-whoami-service :as whoami-helpers]
-   [ctia.test-helpers.store :refer [deftest-for-each-store]]
-   [ctia.test-helpers.auth :refer [all-capabilities]]
-   [ctia.schemas.incident :refer [NewIncident StoredIncident]]))
+  (:require [clojure.test :refer [is join-fixtures testing use-fixtures]]
+            [ctia.lib.url :as u]
+            [ctia.test-helpers
+             [auth :refer [all-capabilities]]
+             [core :as helpers :refer [delete get post put]]
+             [fake-whoami-service :as whoami-helpers]
+             [http :refer [api-key]]
+             [store :refer [deftest-for-each-store]]]))
 
 (use-fixtures :once (join-fixtures [helpers/fixture-schema-validation
                                     helpers/fixture-properties:clean
@@ -133,3 +134,27 @@
           (let [response (get (str "ctia/incident/" (:id incident))
                               :headers {"api_key" "45c1f5e3f05d0"})]
             (is (= 404 (:status response)))))))))
+
+(deftest-for-each-store test-incident-multi-route
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response api-key "foouser" "user")
+  (testing "POST /ctia/incidents"
+    (let [incidents (map (fn [nb]
+                           {:title (str "incident-" nb)
+                            :description (str "incident-" nb)
+                            :confidence "High"
+                            :categories ["Denial of Service" "Improper Usage"]
+                            :valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
+                                         :end_time #inst "2017-02-11T00:40:48.212-00:00"}})
+                      [1 2 3])
+          incident-keys (keys (first incidents))
+          response (post "ctia/incidents"
+                         :body incidents
+                         :headers {"api_key" api-key})
+          ids (:parsed-body response)
+          retrieved-incidents (doall (map #(-> (get (str "ctia/incident/" (u/encode %))
+                                                 :headers {"api_key" api-key})
+                                            :parsed-body)
+                                       ids))]
+      (is (= incidents
+             (map #(select-keys % incident-keys) retrieved-incidents))))))

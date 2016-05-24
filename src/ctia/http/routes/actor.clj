@@ -1,10 +1,12 @@
 (ns ctia.http.routes.actor
-  (:require [schema.core :as s]
-            [compojure.api.sweet :refer :all]
-            [ring.util.http-response :refer :all]
+  (:require [compojure.api.sweet :refer :all]
             [ctia.flows.crud :as flows]
-            [ctia.schemas.actor :refer [NewActor StoredActor realize-actor]]
-            [ctia.store :refer :all]))
+            [ctia.schemas
+             [actor :refer [NewActor realize-actor StoredActor]]
+             [common :as c]]
+            [ctia.store :refer :all]
+            [ring.util.http-response :refer :all]
+            [schema.core :as s]))
 
 (defroutes actor-routes
   (context "/actor" []
@@ -58,4 +60,21 @@
                              :id id
                              :login login)
         (no-content)
-        (not-found)))))
+        (not-found))))
+  (context "/actors" []
+    :tags ["Actor"]
+    (POST "/" []
+      :return [c/ID]
+      :body [actors [NewActor] {:description "a list of new Actor"}]
+      :header-params [api_key :- (s/maybe s/Str)]
+      :summary "Adds a list of new Actor"
+      :capabilities :create-actor
+      :login login
+      (ok (map (fn [actor]
+                 (-> (flows/create-flow :entity-type :actor
+                                        :realize-fn realize-actor
+                                        :store-fn #(create-actor @actor-store %)
+                                        :login login
+                                        :entity actor)
+                     :id))
+               actors)))))

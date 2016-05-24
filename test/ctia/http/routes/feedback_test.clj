@@ -1,12 +1,12 @@
 (ns ctia.http.routes.feedback-test
   (:refer-clojure :exclude [get])
   (:require [clojure.test :refer [is join-fixtures testing use-fixtures]]
-            [ctia.domain.id :as id]
-            [ctia.properties :refer [properties]]
+            [ctia.lib.url :as u]
             [ctia.test-helpers
              [auth :refer [all-capabilities]]
              [core :as helpers :refer [delete get post]]
              [fake-whoami-service :as whoami-helpers]
+             [http :refer [api-key]]
              [store :refer [deftest-for-each-store]]]))
 
 (use-fixtures :once (join-fixtures [helpers/fixture-schema-validation
@@ -82,3 +82,26 @@
           (let [response (get (str "ctia/feedback/" (:id temp-feedback))
                               :headers {"api_key" "45c1f5e3f05d0"})]
             (is (= 404 (:status response)))))))))
+
+(deftest-for-each-store test-feedback-multi-route
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response api-key "foouser" "user")
+  (testing "POST /ctia/feedbacks"
+    (let [feedbacks (map (fn [nb]
+                           {:feedback -1,
+                            :entity_id (str "judgement-" nb)
+                            :type "feedback"
+                            :reason "false positive"
+                            :tlp "green"})
+                      [1 2 3])
+          feedback-keys (keys (first feedbacks))
+          response (post "ctia/feedbacks"
+                         :body feedbacks
+                         :headers {"api_key" api-key})
+          ids (:parsed-body response)
+          retrieved-feedbacks (doall (map #(-> (get (str "ctia/feedback/" (u/encode %))
+                                                 :headers {"api_key" api-key})
+                                            :parsed-body)
+                                       ids))]
+      (is (= feedbacks
+             (map #(select-keys % feedback-keys) retrieved-feedbacks))))))

@@ -1,17 +1,14 @@
 (ns ctia.http.routes.indicator-test
   (:refer-clojure :exclude [get])
-  (:require
-   [clojure.tools.logging :as log]
-   [ring.util.codec :refer [url-encode]]
-   [clojure.test :refer [deftest is are testing use-fixtures join-fixtures]]
-   [ctia.test-helpers.http :refer [api-key test-get-list assert-post]]
-   [ctia.test-helpers.core :refer [delete get post put] :as helpers]
-   [ctia.test-helpers.fake-whoami-service :as whoami-helpers]
-   [ctia.test-helpers.store :refer [deftest-for-each-store]]
-   [ctia.test-helpers.auth :refer [all-capabilities]]
-   [ctia.schemas.indicator :refer [NewIndicator StoredIndicator]]
-   [ctia.schemas.sighting :refer [NewSighting]]
-   [ctia.http.routes.indicator :refer [->long-id]]))
+  (:require [clojure.test :refer [is join-fixtures testing use-fixtures]]
+            [ctia.http.routes.indicator :refer [->long-id]]
+            [ctia.lib.url :as u]
+            [ctia.test-helpers
+             [auth :refer [all-capabilities]]
+             [core :as helpers :refer [delete get post put]]
+             [fake-whoami-service :as whoami-helpers]
+             [http :refer [api-key assert-post test-get-list]]
+             [store :refer [deftest-for-each-store]]]))
 
 (use-fixtures :once (join-fixtures [helpers/fixture-schema-validation
                                     helpers/fixture-properties:clean
@@ -233,9 +230,9 @@
           indicator-2 (assert-post "ctia/indicator" new-indicator-2)
           indicator-3 (assert-post "ctia/indicator" new-indicator-3)
           indicator-4 (assert-post "ctia/indicator" new-indicator-4)]
-      (test-get-list (str "ctia/coa/" (url-encode (:id coa-1)) "/indicators")
+      (test-get-list (str "ctia/coa/" (u/encode (:id coa-1)) "/indicators")
                      [indicator-1 indicator-2])
-      (test-get-list (str "ctia/coa/" (url-encode (:id coa-2)) "/indicators")
+      (test-get-list (str "ctia/coa/" (u/encode (:id coa-2)) "/indicators")
                      [indicator-1 indicator-3]))))
 
 (deftest-for-each-store test-indicator-list-by-campaign-routes
@@ -291,9 +288,9 @@
           indicator-2 (assert-post "ctia/indicator" new-indicator-2)
           indicator-3 (assert-post "ctia/indicator" new-indicator-3)
           indicator-4 (assert-post "ctia/indicator" new-indicator-4)]
-      (test-get-list (str "ctia/campaign/" (url-encode (:id campaign-1)) "/indicators")
+      (test-get-list (str "ctia/campaign/" (u/encode (:id campaign-1)) "/indicators")
                      [indicator-1 indicator-2])
-      (test-get-list (str "ctia/campaign/" (url-encode (:id campaign-2)) "/indicators")
+      (test-get-list (str "ctia/campaign/" (u/encode (:id campaign-2)) "/indicators")
                      [indicator-1 indicator-3]))))
 
 (deftest-for-each-store test-indicator-list-by-judgement-routes
@@ -351,9 +348,9 @@
           indicator-2 (assert-post "ctia/indicator" new-indicator-2)
           indicator-3 (assert-post "ctia/indicator" new-indicator-3)
           indicator-4 (assert-post "ctia/indicator" new-indicator-4)]
-      (test-get-list (str "ctia/judgement/" (url-encode (:id judgement-1)) "/indicators")
+      (test-get-list (str "ctia/judgement/" (u/encode (:id judgement-1)) "/indicators")
                      [indicator-1 indicator-2])
-      (test-get-list (str "ctia/judgement/" (url-encode (:id judgement-2)) "/indicators")
+      (test-get-list (str "ctia/judgement/" (u/encode (:id judgement-2)) "/indicators")
                      [indicator-1 indicator-3]))))
 
 (deftest-for-each-store test-indicator-list-by-ttp-routes
@@ -409,9 +406,9 @@
           indicator-2 (assert-post "ctia/indicator" new-indicator-2)
           indicator-3 (assert-post "ctia/indicator" new-indicator-3)
           indicator-4 (assert-post "ctia/indicator" new-indicator-4)]
-      (test-get-list (str "ctia/ttp/" (url-encode (:id ttp-1)) "/indicators")
+      (test-get-list (str "ctia/ttp/" (u/encode (:id ttp-1)) "/indicators")
                      [indicator-1 indicator-2])
-      (test-get-list (str "ctia/ttp/" (url-encode (:id ttp-2)) "/indicators")
+      (test-get-list (str "ctia/ttp/" (u/encode (:id ttp-2)) "/indicators")
                      [indicator-1 indicator-3]))))
 
 (deftest-for-each-store test-indicator-list-by-indicator-routes
@@ -467,7 +464,31 @@
           indicator-2 (assert-post "ctia/indicator" new-indicator-2)
           indicator-3 (assert-post "ctia/indicator" new-indicator-3)
           indicator-4 (assert-post "ctia/indicator" new-indicator-4)]
-      (test-get-list (str "ctia/indicator/" (url-encode (:id r-indicator-1)) "/indicators")
+      (test-get-list (str "ctia/indicator/" (u/encode (:id r-indicator-1)) "/indicators")
                      [indicator-1 indicator-2])
-      (test-get-list (str "ctia/indicator/" (url-encode (:id r-indicator-2)) "/indicators")
+      (test-get-list (str "ctia/indicator/" (u/encode (:id r-indicator-2)) "/indicators")
                      [indicator-1 indicator-3]))))
+
+(deftest-for-each-store test-indicator-multi-route
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response api-key "foouser" "user")
+  (testing "POST /ctia/indicators"
+    (let [indicators (map (fn [nb]
+                            {:title (str "indicator-" nb)
+                             :description (str "indicator-" nb)
+                             :indicator_type ["C2" "IP Watchlist"]
+                             :producer "test"
+                             :valid_time {:start_time #inst "2016-05-19T00:40:48.212-00:00"
+                                          :end_time #inst "2017-05-19T00:40:48.212-00:00"}})
+                      [1 2 3])
+          indicator-keys (keys (first indicators))
+          response (post "ctia/indicators"
+                         :body indicators
+                         :headers {"api_key" api-key})
+          ids (:parsed-body response)
+          retrieved-indicators (doall (map #(-> (get (str "ctia/indicator/" (u/encode %))
+                                                 :headers {"api_key" api-key})
+                                            :parsed-body)
+                                       ids))]
+      (is (= indicators
+             (map #(select-keys % indicator-keys) retrieved-indicators))))))

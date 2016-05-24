@@ -1,8 +1,10 @@
 (ns ctia.http.routes.actor-test
   (:refer-clojure :exclude [get])
   (:require
+   [ctia.lib.url :as u]
    [clojure.test :refer [deftest is testing use-fixtures join-fixtures]]
    [ctia.test-helpers.core :refer [delete get post put] :as helpers]
+   [ctia.test-helpers.http :refer [api-key]]
    [ctia.test-helpers.fake-whoami-service :as whoami-helpers]
    [ctia.test-helpers.store :refer [deftest-for-each-store]]
    [ctia.test-helpers.auth :refer [all-capabilities]]))
@@ -130,3 +132,26 @@
           (let [response (get (str "ctia/actor/" (:id actor))
                               :headers {"api_key" "45c1f5e3f05d0"})]
             (is (= 404 (:status response)))))))))
+
+(deftest-for-each-store test-actor-multi-route
+  (helpers/set-capabilities! "foouser" "user" all-capabilities)
+  (whoami-helpers/set-whoami-response api-key "foouser" "user")
+  (testing "POST /ctia/actors"
+    (let [actors (map (fn [nb]
+                        {:title (str "actor-" nb)
+                         :description (str "actor-" nb)
+                         :valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
+                                      :end_time #inst "2016-07-11T00:40:48.212-00:00"}
+                         :actor_type "Hacker"})
+                      [1 2 3])
+          actor-keys (keys (first actors))
+          response (post "ctia/actors"
+                         :body actors
+                         :headers {"api_key" api-key})
+          ids (:parsed-body response)
+          retrieved-actors (doall (map #(-> (get (str "ctia/actor/" (u/encode %))
+                                                 :headers {"api_key" api-key})
+                                            :parsed-body)
+                                       ids))]
+      (is (= actors
+             (map #(select-keys % actor-keys) retrieved-actors))))))
