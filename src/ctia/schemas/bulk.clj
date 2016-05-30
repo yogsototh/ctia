@@ -11,40 +11,44 @@
              [judgement :as judgement]
              [sighting :as sighting]
              [ttp :as ttp]]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [schema-tools.core :as st]))
 
 (s/defschema StoredBulk
-  {:actor          [actor/StoredActor]
-   :campaign       [campaign/StoredCampaign]
-   :coa            [coa/StoredCOA]
-   :exploit-target [et/StoredExploitTarget]
-   :feedback       [feedback/StoredFeedback]
-   :incident       [incident/StoredIncident]
-   :indicator      [indicator/StoredIndicator]
-   :judgement      [judgement/StoredJudgement]
-   :sighting       [sighting/StoredSighting]
-   :ttp            [ttp/StoredTTP]})
+  (st/optional-keys
+   {:actors          [actor/StoredActor]
+    :campaigns       [campaign/StoredCampaign]
+    :coas            [coa/StoredCOA]
+    :exploit-targets [et/StoredExploitTarget]
+    :feedbacks       [feedback/StoredFeedback]
+    :incidents       [incident/StoredIncident]
+    :indicators      [indicator/StoredIndicator]
+    :judgements      [judgement/StoredJudgement]
+    :sightings       [sighting/StoredSighting]
+    :ttps            [ttp/StoredTTP]}))
 
 (s/defschema BulkRefs
-  {:actor          [c/Reference]
-   :campaign       [c/Reference]                  
-   :coa            [c/Reference]
-   :exploit-target [c/Reference]
-   :feedback       [c/Reference]
-   :incident       [c/Reference]
-   :indicator      [c/Reference]
-   :judgement      [c/Reference]
-   :sighting       [c/Reference]
-   :ttp            [c/Reference]})
+  (st/optional-keys
+   {:actors          [c/Reference]
+    :campaigns       [c/Reference]                  
+    :coas            [c/Reference]
+    :exploit-targets [c/Reference]
+    :feedbacks       [c/Reference]
+    :incidents       [c/Reference]
+    :indicators      [c/Reference]
+    :judgements      [c/Reference]
+    :sightings       [c/Reference]
+    :ttps            [c/Reference]}))
 
 (s/defschema NewBulk
-  {:actor          [actor/NewActor]
-   :campaign       [campaign/NewCampaign]
-   :coa            [coa/NewCOA]
-   :exploit-target [et/NewExploitTarget]
-   :feedback       [feedback/NewFeedback]
-   :incident       [incident/NewIncident]
-   :indicator      [indicator/NewIndicator]
-   :judgement      [judgement/NewJudgement]
-   :sighting       [sighting/NewSighting]
-   :ttp            [ttp/NewTTP]})
+  (st/optional-keys
+   {:actors          [actor/NewActor]
+    :campaigns       [campaign/NewCampaign]
+    :coas            [coa/NewCOA]
+    :exploit-targets [et/NewExploitTarget]
+    :feedbacks       [feedback/NewFeedback]
+    :incidents       [incident/NewIncident]
+    :indicators      [indicator/NewIndicator]
+    :judgements      [judgement/NewJudgement]
+    :sightings       [sighting/NewSighting]
+    :ttps            [ttp/NewTTP]}))

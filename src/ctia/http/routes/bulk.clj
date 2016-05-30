@@ -1,11 +1,13 @@
 (ns ctia.http.routes.bulk
   (:require [compojure.api.sweet :refer :all]
+            [clojure.string :as str]
             [ctia.flows.crud :as flows]
             [ctia.schemas
              [actor :as actor]
              [bulk :refer [BulkRefs NewBulk StoredBulk]]
              [campaign :as campaign]
              [coa :as coa]
+             [common :as c]
              [exploit-target :as et]
              [feedback :as feedback]
              [incident :as incident]
@@ -16,6 +18,13 @@
             [ctia.store :refer :all]
             [ring.util.http-response :refer :all]
             [schema.core :as s]))
+
+(defn singular [k]
+  "remove the last s of a keyword see test for an example."
+  (-> k
+      name
+      (str/replace #"s$" "")
+      keyword)) 
 
 (defn realize [k]
   "return the realize function provided an entity key name"
@@ -77,6 +86,25 @@
   (->> ids
        (map (read-fn entity-type))))
 
+(defn gen-bulk-from-fn
+  ([func bulk]
+   (reduce (fn [acc entity-type] 
+             (assoc acc
+                    entity-type
+                    (func (get bulk entity-type)
+                               (singular entity-type))))
+           {}
+           (keys bulk)))
+  ([func bulk login]
+   (reduce (fn [acc entity-type] 
+             (assoc acc
+                    entity-type
+                    (func login
+                          (get bulk entity-type)
+                          (singular entity-type))))
+           {}
+           (keys bulk))))
+
 (defroutes bulk-routes
   (context "/bulk" []
     :tags ["Bulk"]
@@ -96,14 +124,7 @@
                       :create-sighting
                       :create-ttp}
       :login login
-      (ok (reduce (fn [acc entity-type] 
-                    (assoc acc
-                           entity-type
-                           (create-entities login
-                                            (get bulk entity-type)
-                                            entity-type)))
-                  {}
-                  (keys NewBulk))))
+      (ok (gen-bulk-from-fn create-entities bulk login)))
     (GET "/" []
       :return (s/maybe StoredBulk)
       :summary "Gets many entities at once"
@@ -128,20 +149,14 @@
                       :read-judgement
                       :read-sighting
                       :read-ttp}
-      (let [bulk {:actor          actors
-                  :campaign       campaigns
-                  :coa            coas
-                  :exploit-target exploit-targets
-                  :feedback       feedbacks
-                  :incident       incidents
-                  :indicator      indicators
-                  :judgement      judgements
-                  :sighting       sightings
-                  :ttp            ttps}]
-        (ok (reduce (fn [acc entity-type] 
-                      (assoc acc
-                             entity-type
-                             (read-entities (get bulk entity-type)
-                                            entity-type)))
-                    {}
-                    (keys BulkRefs)))))))
+      (let [bulk {:actors          actors
+                  :campaigns       campaigns
+                  :coas            coas
+                  :exploit-targets exploit-targets
+                  :feedbacks       feedbacks
+                  :incidents       incidents
+                  :indicators      indicators
+                  :judgements      judgements
+                  :sightings       sightings
+                  :ttps            ttps}]
+        (ok (gen-bulk-from-fn read-entities bulk))))))
