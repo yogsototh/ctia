@@ -1,12 +1,14 @@
 (ns ctia.http.routes.bulk-test
   (:refer-clojure :exclude [get])
   (:require
+   [ctia.lib.url :refer [encode]]
    [ctia.http.routes.bulk :refer [singular gen-bulk-from-fn]]
    [clojure.test :refer [deftest is testing use-fixtures join-fixtures]]
    [ctia.test-helpers.core :refer [delete get post put] :as helpers]
    [ctia.test-helpers.fake-whoami-service :as whoami-helpers]
    [ctia.test-helpers.store :refer [deftest-for-each-store]]
-   [ctia.test-helpers.auth :refer [all-capabilities]]))
+   [ctia.auth :refer [all-capabilities]]
+   [clojure.string :as str]))
 
 
 (use-fixtures :once (join-fixtures [helpers/fixture-schema-validation
@@ -46,7 +48,6 @@
 (defn mk-new-campaign [n]
   {:title (str "campaign" n)
    :description "description"
-   :tlp "red"
    :campaign_type "anything goes here"
    :intended_effect ["Theft"]
    :indicators [{:indicator_id "indicator-foo"}
@@ -81,12 +82,26 @@
              {:actors [:x :x :x :x :x :x]
               :campaigns [:x :x :x :x :x :x]})))))
 
-(deftest-for-each-store test-actor-routes
+(def tst-bulk{:actors (map #(str "actor-" %) (range 6))
+              :campaigns (map #(str "campaign-" %) (range 6))})
+
+(defn make-get-query-str-from-bulkrefs
+  "Given a BulkRefs returns the string of query-params"
+  [bulk-ids]
+  (str/join "&"
+            (map
+             (fn [type]
+               (str/join "&"
+                         (map (fn [id] (str (encode (name type)) "=" (encode id)))
+                              (get-in bulk-ids [type]))))
+             [:actors :campaigns])))
+
+(deftest-for-each-store test-bulk-routes
   (helpers/set-capabilities! "foouser" "user" all-capabilities)
   (whoami-helpers/set-whoami-response "45c1f5e3f05d0" "foouser" "user")
   (testing "POST /ctia/bulk"
-    (let [new-bulk {:actors (map mk-new-actor (range 100))
-                    :campaigns (map mk-new-campaign (range 100))}
+    (let [new-bulk {:actors (map mk-new-actor (range 10))
+                    :campaigns (map mk-new-campaign (range 10))}
           response (post "ctia/bulk"
                          :body new-bulk
                          :headers {"api_key" "45c1f5e3f05d0"})
@@ -96,4 +111,13 @@
       (is (= 200 (:status response)))
       (doseq [type [:actors :campaigns]]
         (is (= (count (get-in bulk-ids [type]))
-               (count (get-in new-bulk [type]))))))))
+               (count (get-in new-bulk [type])))))
+      (testing "GET /ctia/bulk"
+        (let [resp (get (str "ctia/bulk?"
+                             (make-get-query-str-from-bulkrefs bulk-ids))
+                        :headers {"api_key" "45c1f5e3f05d0"})]
+          (is (= 200 (:status resp)))
+          (doseq [k (keys new-bulk)]
+            (is (= (get-in new-bulk [k])
+                   (map #(dissoc % :created :id :type :modified :owner :tlp :version)
+                        (get-in (:parsed-body resp) [k]))))))))))

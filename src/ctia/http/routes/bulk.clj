@@ -128,16 +128,16 @@
     (GET "/" []
       :return (s/maybe StoredBulk)
       :summary "Gets many entities at once"
-      :query-params [actors          :- [c/Reference]
-                     campaigns       :- [c/Reference]                  
-                     coas            :- [c/Reference]
-                     exploit-targets :- [c/Reference]
-                     feedbacks       :- [c/Reference]
-                     incidents       :- [c/Reference]
-                     indicators      :- [c/Reference]
-                     judgements      :- [c/Reference]
-                     sightings       :- [c/Reference]
-                     ttps            :- [c/Reference]]
+      :query-params [{actors          :- [c/Reference] []}
+                     {campaigns       :- [c/Reference] []}                  
+                     {coas            :- [c/Reference] []}
+                     {exploit-targets :- [c/Reference] []}
+                     {feedbacks       :- [c/Reference] []}
+                     {incidents       :- [c/Reference] []}
+                     {indicators      :- [c/Reference] []}
+                     {judgements      :- [c/Reference] []}
+                     {sightings       :- [c/Reference] []}
+                     {ttps            :- [c/Reference] []}]
       :header-params [api_key :- (s/maybe s/Str)]
       :capabilities #{:read-actor
                       :read-campaign
@@ -149,14 +149,15 @@
                       :read-judgement
                       :read-sighting
                       :read-ttp}
-      (let [bulk {:actors          actors
-                  :campaigns       campaigns
-                  :coas            coas
-                  :exploit-targets exploit-targets
-                  :feedbacks       feedbacks
-                  :incidents       incidents
-                  :indicators      indicators
-                  :judgements      judgements
-                  :sightings       sightings
-                  :ttps            ttps}]
+      (let [bulk (into {} (filter (comp not empty? second)
+                                  {:actors          actors
+                                   :campaigns       campaigns
+                                   :coas            coas
+                                   :exploit-targets exploit-targets
+                                   :feedbacks       feedbacks
+                                   :incidents       incidents
+                                   :indicators      indicators
+                                   :judgements      judgements
+                                   :sightings       sightings
+                                   :ttps            ttps}))]
         (ok (gen-bulk-from-fn read-entities bulk))))))
