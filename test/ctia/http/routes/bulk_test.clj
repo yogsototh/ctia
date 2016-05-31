@@ -66,22 +66,20 @@
    :valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
                 :end_time #inst "2016-07-11T00:40:48.212-00:00"}})
 
-
-(def new-bulk {:actors (map mk-new-actor (range 6))
-               :campaigns (map mk-new-campaign (range 6))})
-
-(deftest testing-bulk-from-fn
-  (is (= (gen-bulk-from-fn (fn [lst _] (map (fn [_] :s) lst))
-                           new-bulk)
-         {:actors [:s :s :s :s :s :s]
-          :campaigns [:s :s :s :s :s :s]})))
-
-(deftest testing-bulk-from-fn
-  (is (= (gen-bulk-from-fn (fn [x lst _] (map (fn [_] x) lst))
-                           new-bulk
-                           :x)
-         {:actors [:x :x :x :x :x :x]
-          :campaigns [:x :x :x :x :x :x]})))
+(deftest testing-gen-bulk-from-fn
+  (let [new-bulk {:actors (map mk-new-actor (range 6))
+                  :campaigns (map mk-new-campaign (range 6))}]
+    (testing "testing gen-bulk-from-fn with 2 args"
+      (is (= (gen-bulk-from-fn (fn [lst _] (map (fn [_] :s) lst))
+                               new-bulk)
+             {:actors [:s :s :s :s :s :s]
+              :campaigns [:s :s :s :s :s :s]})))
+    (testing "testing gen-bulk-from-fn with 3 args"
+      (is (= (gen-bulk-from-fn (fn [lst _ x] (map (fn [_] x) lst))
+                               new-bulk
+                               :x)
+             {:actors [:x :x :x :x :x :x]
+              :campaigns [:x :x :x :x :x :x]})))))
 
 (deftest-for-each-store test-actor-routes
   (helpers/set-capabilities! "foouser" "user" all-capabilities)

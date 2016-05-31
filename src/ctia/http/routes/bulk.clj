@@ -70,7 +70,7 @@
 
 (defn create-entities
   "Create many entities provided their type and returns a list of ids"
-  [login entities entity-type]
+  [entities entity-type login]
   (->> entities
        (map #(flows/create-flow
               :entity-type entity-type
@@ -87,23 +87,23 @@
        (map (read-fn entity-type))))
 
 (defn gen-bulk-from-fn
-  ([func bulk]
-   (reduce (fn [acc entity-type] 
-             (assoc acc
-                    entity-type
-                    (func (get bulk entity-type)
-                               (singular entity-type))))
-           {}
-           (keys bulk)))
-  ([func bulk login]
-   (reduce (fn [acc entity-type] 
-             (assoc acc
-                    entity-type
-                    (func login
+  "Kind of fmap but adapted for bulk
+
+  ~~~~.clojure
+  (gen-bulk-from-fn f {k [v1 ... vn]} args)
+  ===> {k (map #(apply f % (singular k) args) [v1 ... vn])}
+  ~~~~
+  "
+  [func bulk & args]
+  (reduce (fn [acc entity-type] 
+            (assoc acc
+                   entity-type
+                   (apply func
                           (get bulk entity-type)
-                          (singular entity-type))))
-           {}
-           (keys bulk))))
+                          (singular entity-type)
+                          args)))
+          {}
+          (keys bulk)))
 
 (defroutes bulk-routes
   (context "/bulk" []
