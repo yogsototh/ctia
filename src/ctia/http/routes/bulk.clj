@@ -25,7 +25,7 @@
   (-> k
       name
       (str/replace #"s$" "")
-      keyword)) 
+      keyword))
 
 (defn realize [k]
   "return the realize function provided an entity key name"
@@ -103,7 +103,7 @@
   ~~~~
   "
   [func bulk & args]
-  (reduce (fn [acc entity-type] 
+  (reduce (fn [acc entity-type]
             (assoc acc
                    entity-type
                    (apply func
@@ -137,7 +137,7 @@
       :return (s/maybe StoredBulk)
       :summary "Gets many entities at once"
       :query-params [{actors          :- [c/Reference] []}
-                     {campaigns       :- [c/Reference] []}                  
+                     {campaigns       :- [c/Reference] []}
                      {coas            :- [c/Reference] []}
                      {exploit-targets :- [c/Reference] []}
                      {feedbacks       :- [c/Reference] []}

@@ -30,7 +30,7 @@
 (s/defschema BulkRefs
   (st/optional-keys
    {:actors          [(s/maybe c/Reference)]
-    :campaigns       [(s/maybe c/Reference)]                  
+    :campaigns       [(s/maybe c/Reference)]
     :coas            [(s/maybe c/Reference)]
     :exploit-targets [(s/maybe c/Reference)]
     :feedbacks       [(s/maybe c/Reference)]

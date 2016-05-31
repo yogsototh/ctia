@@ -178,8 +178,7 @@
                     :indicators (map mk-new-indicator (range nb))
                     :judgements (map mk-new-judgement (range nb))
                     :sightings (map mk-new-sighting (range nb))
-                    :ttps (map mk-new-ttp (range nb))
-                    }
+                    :ttps (map mk-new-ttp (range nb))}
           response (post "ctia/bulk"
                          :body new-bulk
                          :headers {"api_key" "45c1f5e3f05d0"})
