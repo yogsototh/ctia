@@ -16,29 +16,29 @@
 
 (s/defschema StoredBulk
   (st/optional-keys
-   {:actors          [actor/StoredActor]
-    :campaigns       [campaign/StoredCampaign]
-    :coas            [coa/StoredCOA]
-    :exploit-targets [et/StoredExploitTarget]
-    :feedbacks       [feedback/StoredFeedback]
-    :incidents       [incident/StoredIncident]
-    :indicators      [indicator/StoredIndicator]
-    :judgements      [judgement/StoredJudgement]
-    :sightings       [sighting/StoredSighting]
-    :ttps            [ttp/StoredTTP]}))
+   {:actors          [(s/maybe actor/StoredActor)]
+    :campaigns       [(s/maybe campaign/StoredCampaign)]
+    :coas            [(s/maybe coa/StoredCOA)]
+    :exploit-targets [(s/maybe et/StoredExploitTarget)]
+    :feedbacks       [(s/maybe feedback/StoredFeedback)]
+    :incidents       [(s/maybe incident/StoredIncident)]
+    :indicators      [(s/maybe indicator/StoredIndicator)]
+    :judgements      [(s/maybe judgement/StoredJudgement)]
+    :sightings       [(s/maybe sighting/StoredSighting)]
+    :ttps            [(s/maybe ttp/StoredTTP)]}))
 
 (s/defschema BulkRefs
   (st/optional-keys
-   {:actors          [c/Reference]
-    :campaigns       [c/Reference]                  
-    :coas            [c/Reference]
-    :exploit-targets [c/Reference]
-    :feedbacks       [c/Reference]
-    :incidents       [c/Reference]
-    :indicators      [c/Reference]
-    :judgements      [c/Reference]
-    :sightings       [c/Reference]
-    :ttps            [c/Reference]}))
+   {:actors          [(s/maybe c/Reference)]
+    :campaigns       [(s/maybe c/Reference)]                  
+    :coas            [(s/maybe c/Reference)]
+    :exploit-targets [(s/maybe c/Reference)]
+    :feedbacks       [(s/maybe c/Reference)]
+    :incidents       [(s/maybe c/Reference)]
+    :indicators      [(s/maybe c/Reference)]
+    :judgements      [(s/maybe c/Reference)]
+    :sightings       [(s/maybe c/Reference)]
+    :ttps            [(s/maybe c/Reference)]}))
 
 (s/defschema NewBulk
   (st/optional-keys

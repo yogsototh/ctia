@@ -17,7 +17,8 @@
              [ttp :as ttp]]
             [ctia.store :refer :all]
             [ring.util.http-response :refer :all]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [clojure.tools.logging :as log]))
 
 (defn singular [k]
   "remove the last s of a keyword see test for an example."
@@ -72,19 +73,26 @@
   "Create many entities provided their type and returns a list of ids"
   [entities entity-type login]
   (->> entities
-       (map #(flows/create-flow
-              :entity-type entity-type
-              :realize-fn (realize entity-type)
-              :store-fn (create-fn entity-type)
-              :login login
-              :entity %))
+       (map #(try (flows/create-flow
+                   :entity-type entity-type
+                   :realize-fn (realize entity-type)
+                   :store-fn (create-fn entity-type)
+                   :login login
+                   :entity %)
+                  (catch Exception e
+                    (do (log/error (pr-str e))
+                        nil))))
        (map :id)))
 
 (defn read-entities
   "Retrieve many entities of the same type provided their ids and common type"
   [ids entity-type]
-  (->> ids
-       (map (read-fn entity-type))))
+  (let [read-entity (read-fn entity-type)]
+    (->> ids
+         (map (fn [id] (try (read-entity id)
+                            (catch Exception e
+                              (do (log/error (pr-str e))
+                                  nil))))))))
 
 (defn gen-bulk-from-fn
   "Kind of fmap but adapted for bulk

@@ -67,6 +67,74 @@
    :valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
                 :end_time #inst "2016-07-11T00:40:48.212-00:00"}})
 
+(defn mk-new-coa [n]
+  {:title (str "coa-" n)
+   :description (str "description: coa-" n)
+   :valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
+                :end_time #inst "2016-07-11T00:40:48.212-00:00"}})
+
+(defn mk-new-exploi-target [n]
+  {:title (str "exploi-target-" n)
+   :description (str "description: exploi-target-" n)
+   :valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
+                :end_time #inst "2016-07-11T00:40:48.212-00:00"}})
+
+(defn mk-new-feedback [n]
+  {:entity_id (str "judgement-" n)
+   :feedback -1
+   :reason "false positive"})
+
+(defn mk-new-incident [n]
+  {:title (str "incident-" n)
+   :description (str "description: incident-" n)
+   :confidence "Low"
+   :valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
+                :end_time #inst "2016-07-11T00:40:48.212-00:00"}})
+
+(defn mk-new-indicator [n]
+  {:title (str "indicator-" n)
+   :description (str "description: indicator-" n)
+   :producer "producer"
+   :indicator_type ["C2" "IP Watchlist"]
+   :valid_time {:start_time #inst "2016-05-11T00:40:48.212-00:00"
+                :end_time #inst "2016-07-11T00:40:48.212-00:00"}
+   :judgements [{:judgement_id "judgement-1234"}
+                {:judgement_id "judgement-5678"}]})
+
+(defn mk-new-judgement [n]
+  {:valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
+                :end_time #inst "2016-07-11T00:40:48.212-00:00"}
+   :observable {:value (str "10.0.0." n)
+                :type "ip"}
+   :disposition 2
+   :source "test"
+   :priority 100
+   :severity 100
+   :confidence "Low"
+   :indicators [{:confidence "High"
+                 :source "source"
+                 :relationship "relationship"
+                 :indicator_id "indicator-123"}]})
+
+(defn mk-new-sighting [n]
+  {:description (str "description: sighting-" n)
+   :timestamp #inst "2016-02-11T00:40:48.212-00:00"
+   :source "source"
+   :source_device "endpoint.sensor"
+   :confidence "High"
+   :indicators [{:indicator_id "indicator-22334455"}]})
+
+(defn mk-new-ttp [n]
+  {:title (str "ttp-" n)
+   :description (str "description: ttp-" n)
+   :valid_time {:start_time #inst "2016-02-11T00:40:48.212-00:00"
+                :end_time #inst "2016-07-11T00:40:48.212-00:00"}
+   :ttp_type "foo"
+   :indicators [{:indicator_id "indicator-1"}
+                {:indicator_id "indicator-2"}]
+   :exploit_targets [{:exploit_target_id "exploit-target-123"}
+                     {:exploit_target_id "exploit-target-234"}]})
+
 (deftest testing-gen-bulk-from-fn
   (let [new-bulk {:actors (map mk-new-actor (range 6))
                   :campaigns (map mk-new-campaign (range 6))}]
@@ -94,30 +162,40 @@
                (str/join "&"
                          (map (fn [id] (str (encode (name type)) "=" (encode id)))
                               (get-in bulk-ids [type]))))
-             [:actors :campaigns])))
+             (keys bulk-ids))))
 
 (deftest-for-each-store test-bulk-routes
   (helpers/set-capabilities! "foouser" "user" all-capabilities)
   (whoami-helpers/set-whoami-response "45c1f5e3f05d0" "foouser" "user")
   (testing "POST /ctia/bulk"
-    (let [new-bulk {:actors (map mk-new-actor (range 10))
-                    :campaigns (map mk-new-campaign (range 10))}
+    (let [nb 10
+          new-bulk {:actors (map mk-new-actor (range nb))
+                    :campaigns (map mk-new-campaign (range nb))
+                    :coas (map mk-new-coa (range nb))
+                    :exploit-targets (map mk-new-exploi-target (range nb))
+                    :feedbacks (map mk-new-feedback (range nb))
+                    :incidents (map mk-new-incident (range nb))
+                    :indicators (map mk-new-indicator (range nb))
+                    :judgements (map mk-new-judgement (range nb))
+                    :sightings (map mk-new-sighting (range nb))
+                    :ttps (map mk-new-ttp (range nb))
+                    }
           response (post "ctia/bulk"
                          :body new-bulk
                          :headers {"api_key" "45c1f5e3f05d0"})
           bulk-ids (:parsed-body response)]
-      (when-not (= 200 (:status response))
-        (clojure.pprint/pprint response))
       (is (= 200 (:status response)))
-      (doseq [type [:actors :campaigns]]
-        (is (= (count (get-in bulk-ids [type]))
-               (count (get-in new-bulk [type])))))
+      (doseq [type (keys new-bulk)]
+        (testing (str "number of created " (name type))
+          (is (= (count (get-in new-bulk [type]))
+                 (count (get-in bulk-ids [type]))))))
       (testing "GET /ctia/bulk"
         (let [resp (get (str "ctia/bulk?"
                              (make-get-query-str-from-bulkrefs bulk-ids))
                         :headers {"api_key" "45c1f5e3f05d0"})]
           (is (= 200 (:status resp)))
           (doseq [k (keys new-bulk)]
-            (is (= (get-in new-bulk [k])
-                   (map #(dissoc % :created :id :type :modified :owner :tlp :version)
-                        (get-in (:parsed-body resp) [k]))))))))))
+            (testing (str "retrieved " (name k))
+              (is (= (get-in new-bulk [k])
+                     (map #(dissoc % :created :id :type :modified :owner :tlp :version :disposition_name)
+                          (get-in (:parsed-body resp) [k])))))))))))
