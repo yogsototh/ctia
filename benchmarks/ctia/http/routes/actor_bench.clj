@@ -5,6 +5,7 @@
             [ctia.http.server :as http-server]
             [ctia.flows.hooks :as hooks]
             [ctia.events :as events]
+            [ctia.test-helpers.es :as esh]
             [ctia.test-helpers.core :refer [get post put delete] :as helpers]))
 
 (def small-actor
@@ -37,26 +38,86 @@
    :valid_time {:start_time "2016-02-11T00:40:48.212-00:00"
                 :end_time "2016-07-11T00:40:48.212-00:00"}})
 
-;; --- Create Actor
-(defgoal create-actor "Create Actor"
+;; -----------------------------------------------------------------------------
+;; (defgoal create-actor "Create Actor"
+;;   :setup (fn []
+;;            (let [http-port (helpers/available-port)]
+;;              (println "Default: Launch CTIA on port" http-port)
+;;              (helpers/with-properties ["ctia.http.enabled" true
+;;                                        "ctia.http.port" http-port
+;;                                        "ctia.http.show.port" http-port]
+;;                (start-ctia! :join? false))))
+;;   :cleanup (fn []
+;;              (http-server/stop!)
+;;              (hooks/shutdown!)
+;;              (events/shutdown!)))
+;; 
+;; (defcase create-actor :small-actor
+;;   []
+;;   (post "ctia/http"
+;;            :body small-actor
+;;            :headers {"api_key" "45c1f5e3f05d0"}))
+;; 
+;; (defcase create-actor :big-actor
+;;   []
+;;   (post "ctia/http"
+;;         :body big-actor
+;;         :headers {"api_key" "45c1f5e3f05d0"}))
+
+;; -----------------------------------------------------------------------------
+(defgoal create-actor-es-native "ES Native Actor"
   :setup (fn []
            (let [http-port (helpers/available-port)]
-             (helpers/with-properties ["ctia.http.enabled" true
-                                       "ctia.http.port" http-port
-                                       "ctia.http.show.port" http-port]
-               (start-ctia! :join? false))))
+             (println "ES Native: Launch CTIA on port" http-port)
+             (helpers/fixture-properties:clean
+              (fn []
+                (helpers/with-properties ["ctia.http.enabled" true
+                                          "ctia.http.port" http-port
+                                          "ctia.http.show.port" http-port]
+                  (esh/fixture-properties:es-store-native
+                   (fn [] (start-ctia! :join? false))))))))
   :cleanup (fn []
              (http-server/stop!)
              (hooks/shutdown!)
              (events/shutdown!)))
 
-(defcase create-actor :small-actor
+(defcase create-actor-es-native :small-actor
   []
   (post "ctia/http"
-           :body small-actor
-           :headers {"api_key" "45c1f5e3f05d0"}))
+        :body small-actor
+        :headers {"api_key" "45c1f5e3f05d0"}))
 
-(defcase create-actor :big-actor
+(defcase create-actor-es-native :big-actor
+  []
+  (post "ctia/http"
+        :body big-actor
+        :headers {"api_key" "45c1f5e3f05d0"}))
+
+;; -----------------------------------------------------------------------------
+(defgoal create-actor-es "ES HTTP Actor"
+  :setup (fn []
+           (let [http-port (helpers/available-port)]
+             (println "ES HTTP: Launch CTIA on port" http-port)
+
+             (helpers/fixture-properties:clean
+              (fn []
+                (helpers/with-properties ["ctia.http.enabled" true
+                                          "ctia.http.port" http-port
+                                          "ctia.http.show.port" http-port]
+                  (esh/fixture-properties:es-store
+                   (fn [] (start-ctia! :join? false))))))))
+  :cleanup (fn []
+             (http-server/stop!)
+             (hooks/shutdown!)
+             (events/shutdown!)))
+
+(defcase create-actor-es :small-actor
+  []
+  (post "ctia/http"
+        :body small-actor
+        :headers {"api_key" "45c1f5e3f05d0"}))
+
+(defcase create-actor-es :big-actor
   []
   (post "ctia/http"
         :body big-actor
