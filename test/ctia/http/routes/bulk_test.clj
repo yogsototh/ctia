@@ -178,7 +178,7 @@
                          :body new-bulk
                          :headers {"api_key" "45c1f5e3f05d0"})
           bulk-ids (:parsed-body response)]
-      (is (= 200 (:status response)))
+      (is (= 201 (:status response)))
       (doseq [type (keys new-bulk)]
         (testing (str "number of created " (name type))
           (is (= (count (get-in new-bulk [type]))
@@ -243,6 +243,6 @@
                                        :body new-too-big-bulk
                                        :headers {"api_key" "45c1f5e3f05d0"})]
     (testing "POST of right size bulk are accepted"
-      (is (= 200 status-ok)))
+      (is (= 201 status-ok)))
     (testing "POST of too big bulks are rejected"
       (is (= 400 status-too-big)))))
