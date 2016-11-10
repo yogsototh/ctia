@@ -4,7 +4,7 @@
    [ctia.domain.entities :refer [realize-relationship]]
    [ctia.domain.entities.relationship :refer [with-long-id page-with-long-id]]
    [ctia.flows.crud :as flows]
-   [ctia.http.routes.common :refer [created paginated-ok PagingParams]]
+   [ctia.http.routes.common :refer [created paginated-ok PagingParams RelationshipSearchParams]]
    [ctia.store :refer :all]
    [ctia.schemas.core :refer [NewRelationship StoredRelationship]]
    [ring.util.http-response :refer [no-content not-found ok]]
@@ -57,6 +57,20 @@
                   (ok (with-long-id d))
                   (not-found)))
 
+           (GET "/search" []
+                :return (s/maybe [StoredRelationship])
+                :summary "Search for an Relationship using a Lucene/ES query string"
+                :query [params RelationshipSearchParams]
+                :capabilities #{:read-relationship :search-relationship}
+                :header-params [api_key :- (s/maybe s/Str)]
+                (paginated-ok
+                 (page-with-long-id
+                  (query-string-search-store :relationship
+                                             query-string-search
+                                             (:query params)
+                                             (dissoc params :query :sort_by :sort_order :offset :limit)
+                                             (select-keys params [:sort_by :sort_order :offset :limit])))))
+           
            (DELETE "/:id" []
                    :no-doc true
                    :path-params [id :- s/Str]

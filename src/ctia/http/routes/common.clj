@@ -96,6 +96,13 @@
                          :feedback
                          :reason])))
 
+(def relationship-sort-fields
+  (apply s/enum (concat default-entity-sort-fields
+                        [:valid_time.start
+                         :valid_time.end
+                         :relationship_type
+                         :source_ref
+                         :target_ref])))
 
 ;; Paging related values and code
 
@@ -266,3 +273,15 @@
     (s/optional-key :efficacy) s/Str
     (s/optional-key :structured_coa_type) s/Str
     (s/optional-key :sort_by)  coa-sort-fields}))
+
+(s/defschema RelationshipSearchParams
+  (st/merge
+   PagingParams
+   BaseEntityFilterParams
+   SourcableEntityFilterParams
+   (st/optional-keys
+    {:query s/Str
+     :relationship_type s/Str
+     :source_ref s/Str
+     :target_ref s/Str
+     :sort_by relationship-sort-fields})))
