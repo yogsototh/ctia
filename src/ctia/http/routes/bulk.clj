@@ -13,6 +13,7 @@
              :refer [write-store read-store]]
             [ctia.schemas.core :refer [Reference]]
             [ring.util.http-response :refer :all]
+            [ring-jwt-middleware.core :as jwt-mid]
             [schema.core :as s]
             [clojure.set :as set]))
 

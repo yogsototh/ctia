@@ -3,7 +3,8 @@
    [compojure.api.sweet :refer :all]
    [ctia.schemas.core :refer [VersionInfo]]
    [ctia.version :refer [version-data]]
-   [ring.util.http-response :refer :all]))
+   [ring.util.http-response :refer :all]
+   [ring-jwt-middleware.core :as jwt-mid]))
 
 (defroutes version-routes
   (context "/version" []

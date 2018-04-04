@@ -20,6 +20,7 @@
             PartialCampaign
             PartialCampaignList]]
    [ring.util.http-response :refer [no-content not-found ok]]
+   [ring-jwt-middleware.core :as jwt-mid]
    [schema-tools.core :as st]
    [schema.core :as s]))
 

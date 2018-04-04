@@ -15,6 +15,7 @@
    [ctia.schemas.core
     :refer [NewFeedback Feedback PartialFeedback PartialFeedbackList]]
    [ring.util.http-response :refer [ok no-content not-found]]
+   [ring-jwt-middleware.core :as jwt-mid]
    [schema-tools.core :as st]
    [schema.core :as s]))
 

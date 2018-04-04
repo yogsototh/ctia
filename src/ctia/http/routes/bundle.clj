@@ -8,6 +8,7 @@
             [ctia.schemas.core :refer [NewBundle TempIDs]]
             [ctia.store :refer [list-fn read-store]]
             [ring.util.http-response :refer :all]
+            [ring-jwt-middleware.core :as jwt-mid]
             [schema.core :as s]
             [schema-tools.core :as st]
             [ctim.domain.id :as id]

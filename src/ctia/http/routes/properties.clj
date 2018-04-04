@@ -2,6 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [ctia.properties :refer [properties]]
             [ring.util.http-response :refer :all]
+            [ring-jwt-middleware.core :as jwt-mid]
             [schema.core :as s]))
 
 (defroutes properties-routes

@@ -24,6 +24,7 @@
    [ctim.domain.id :as id]
    [ctim.schemas.indicator :as csi]
    [ring.util.http-response :refer [ok not-found]]
+   [ring-jwt-middleware.core :as jwt-mid]
    [schema-tools.core :as st]
    [schema.core :as s]
    [clojure.tools.logging :as log]))

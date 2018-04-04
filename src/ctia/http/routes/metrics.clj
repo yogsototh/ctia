@@ -3,6 +3,7 @@
                                  Counter Histogram Meter))
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
+            [ring-jwt-middleware.core :as jwt-mid]
             [schema.core :as s]
             [metrics.gauges :as gauges]
             [metrics.meters :as meters]
