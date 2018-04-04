@@ -29,6 +29,7 @@
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "Adds a new Actor"
                  :capabilities :create-actor
+                 :scopes #{"ctia/actor:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -55,6 +56,7 @@
                 :summary "Updates an Actor"
                 :path-params [id :- s/Str]
                 :capabilities :create-actor
+                :scopes #{"ctia/actor:write"}
                 :identity identity
                 :identity-map identity-map
                 (-> (flows/update-flow
@@ -85,6 +87,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List actors by external id"
                 :capabilities #{:read-actor :external-id}
+                :scopes #{"ctia/actor:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :actor list-actors
@@ -100,6 +103,7 @@
                 :summary "Search for an Actor using a Lucene/ES query string"
                 :query [params ActorSearchParams]
                 :capabilities #{:read-actor :search-actor}
+                :scopes #{"ctia/actor:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -121,6 +125,7 @@
                 :query [params ActorGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-actor
+                :scopes #{"ctia/actor:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [actor (read-store :actor
@@ -140,6 +145,7 @@
                    :summary "Deletes an Actor"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-actor
+                   :scopes #{"ctia/actor:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

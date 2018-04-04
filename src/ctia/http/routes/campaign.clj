@@ -32,6 +32,7 @@
                  :summary "Adds a new Campaign"
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :capabilities :create-campaign
+                 :scopes #{"ctia/campaign:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -57,6 +58,7 @@
                 :path-params [id :- s/Str]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :create-campaign
+                :scopes #{"ctia/campaign:write"}
                 :identity identity
                 :identity-map identity-map
                 (-> (flows/update-flow
@@ -87,6 +89,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List campaigns by external id"
                 :capabilities #{:read-campaign :external-id}
+                :scopes #{"ctia/campaign:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :campaign
@@ -103,6 +106,7 @@
                 :summary "Search for a Campaign using a Lucene/ES query string"
                 :query [params CampaignSearchParams]
                 :capabilities #{:read-campaign :search-campaign}
+                :scopes #{"ctia/campaign:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -124,6 +128,7 @@
                 :query [params CampaignGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-campaign
+                :scopes #{"ctia/campaign:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [campaign (read-store :campaign
@@ -143,6 +148,7 @@
                    :summary "Deletes a Campaign"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-campaign
+                   :scopes #{"ctia/campaign:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

@@ -28,6 +28,7 @@
                  :summary "Adds a new COA"
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :capabilities :create-coa
+                 :scopes #{"ctia/coa:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow :realize-fn ent/realize-coa
@@ -52,6 +53,7 @@
                 :path-params [id :- s/Str]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :create-coa
+                :scopes #{"ctia/coa:write"}
                 :identity identity
                 :identity-map identity-map
                 (-> (flows/update-flow :get-fn #(read-store :coa
@@ -81,6 +83,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List COAs by external id"
                 :capabilities #{:read-coa :external-id}
+                :scopes #{"ctia/coa:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :coa
@@ -97,6 +100,7 @@
                 :summary "Search for a Course of Action using a Lucene/ES query string"
                 :query [params COASearchParams]
                 :capabilities #{:read-coa :search-coa}
+                :scopes #{"ctia/coa:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -118,6 +122,7 @@
                 :query [params COAGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-coa
+                :scopes #{"ctia/coa:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [coa (read-store :coa (fn [s] (read-coa s id identity-map params)))]
@@ -133,6 +138,7 @@
                    :summary "Deletes a COA"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-coa
+                   :scopes #{"ctia/coa:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow :get-fn #(read-store :coa

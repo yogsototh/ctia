@@ -30,6 +30,7 @@
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "Adds a new Tool"
                  :capabilities :create-tool
+                 :scopes #{"ctia/tool:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -56,6 +57,7 @@
                 :summary "Updates a Tool"
                 :path-params [id :- s/Str]
                 :capabilities :create-tool
+                :scopes #{"ctia/tool:write"}
                 :identity identity
                 :identity-map identity-map
                 (-> (flows/update-flow
@@ -86,6 +88,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List tools by external id"
                 :capabilities #{:read-tool :external-id}
+                :scopes #{"ctia/tool:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :tool list-tools
@@ -101,6 +104,7 @@
                 :summary "Search for a Tool using a Lucene/ES query string"
                 :query [params ToolSearchParams]
                 :capabilities #{:read-tool :search-tool}
+                :scopes #{"ctia/tool:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -122,6 +126,7 @@
                 :path-params [id :- s/Str]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-tool
+                :scopes #{"ctia/tool:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [tool (read-store :tool
@@ -141,6 +146,7 @@
                    :summary "Deletes a Tool"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-tool
+                   :scopes #{"ctia/tool:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

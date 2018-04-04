@@ -35,6 +35,7 @@
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "Adds a new Judgement"
                  :capabilities :create-judgement
+                 :scopes #{"ctia/judgement:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -58,6 +59,7 @@
                 :summary "Search for a Judgement using a Lucene/ES query string"
                 :query [params JudgementSearchParams]
                 :capabilities #{:read-judgement :search-judgement}
+                :scopes #{"ctia/judgement:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -78,6 +80,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "Get Judgements by external ids"
                 :capabilities #{:read-judgement :external-id}
+                :scopes #{"ctia/judgement:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :judgement
@@ -96,6 +99,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "Gets a Judgement by ID"
                 :capabilities :read-judgement
+                :scopes #{"ctia/judgement:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [judgement (read-store :judgement
@@ -116,6 +120,7 @@
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :summary "Deletes a Judgement"
                    :capabilities :delete-judgement
+                   :scopes #{"ctia/judgement:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

@@ -39,6 +39,7 @@
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "Adds a new Casebook"
                  :capabilities :create-casebook
+                 :scopes #{"casebook:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -65,6 +66,7 @@
                 :summary "Updates an Casebook"
                 :path-params [id :- s/Str]
                 :capabilities :create-casebook
+                :scopes #{"casebook:write"}
                 :identity identity
                 :identity-map identity-map
                 (-> (flows/update-flow
@@ -95,6 +97,7 @@
                   :summary "Partially Update a Casebook"
                   :path-params [id :- s/Str]
                   :capabilities :create-casebook
+                  :scopes #{"casebook:write"}
                   :identity identity
                   :identity-map identity-map
                   (-> (flows/patch-flow
@@ -126,6 +129,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List casebooks by external id"
                 :capabilities #{:read-casebook :external-id}
+                :scopes #{"casebook:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :casebook list-casebooks
@@ -141,6 +145,7 @@
                 :summary "Search for an Casebook using a Lucene/ES query string"
                 :query [params CasebookSearchParams]
                 :capabilities #{:read-casebook :search-casebook}
+                :scopes #{"casebook:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -162,6 +167,7 @@
                 :query [params CasebookGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-casebook
+                :scopes #{"casebook:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [casebook (read-store :casebook
@@ -184,6 +190,7 @@
                           :header-params [{Authorization :- (s/maybe s/Str) nil}]
                           :summary "Edit Observables on a casebook"
                           :capabilities :create-casebook
+                          :scopes #{"casebook:write"}
                           :identity identity
                           :identity-map identity-map
                           (-> (flows/patch-flow
@@ -217,6 +224,7 @@
                           :header-params [{Authorization :- (s/maybe s/Str) nil}]
                           :summary "Edit Texts on a casebook"
                           :capabilities :create-casebook
+                          :scopes #{"casebook:write"}
                           :identity identity
                           :identity-map identity-map
                           (-> (flows/patch-flow
@@ -250,6 +258,7 @@
                           :header-params [{Authorization :- (s/maybe s/Str) nil}]
                           :summary "Edit a Bundle on a casebook"
                           :capabilities :create-casebook
+                          :scopes #{"casebook:write"}
                           :identity identity
                           :identity-map identity-map
                           (-> (flows/patch-flow
@@ -279,6 +288,7 @@
                    :summary "Deletes an Casebook"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-casebook
+                   :scopes #{"casebook:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

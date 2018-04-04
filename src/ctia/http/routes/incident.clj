@@ -31,6 +31,7 @@
                  :summary "Adds a new Incident"
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :capabilities :create-incident
+                 :scopes #{"ctia/incident:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -56,6 +57,7 @@
                 :path-params [id :- s/Str]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :create-incident
+                :scopes #{"ctia/incident:write"}
                 :identity identity
                 :identity-map identity-map
                 (-> (flows/update-flow
@@ -86,6 +88,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List Incidents by external id"
                 :capabilities #{:read-incident :external-id}
+                :scopes #{"ctia/incident:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :incident list-incidents
@@ -101,6 +104,7 @@
                 :summary "Search for an Incident using a Lucene/ES query string"
                 :query [params IncidentSearchParams]
                 :capabilities #{:read-incident :search-incident}
+                :scopes #{"ctia/incident:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -122,6 +126,7 @@
                 :query [params IncidentGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-incident
+                :scopes #{"ctia/incident:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [incident (read-store :incident
@@ -141,6 +146,7 @@
                    :summary "Deletes an Incident"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-incident
+                   :scopes #{"ctia/incident:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

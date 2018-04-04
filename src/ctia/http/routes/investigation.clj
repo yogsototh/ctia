@@ -33,6 +33,7 @@
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "Adds a new Investigation"
                  :capabilities :create-investigation
+                 :scopes #{"ctia/investigation:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -58,6 +59,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "Get Investigations by external IDs"
                 :capabilities #{:read-investigation :external-id}
+                :scopes #{"ctia/investigation:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :investigation
@@ -74,6 +76,7 @@
                 :summary "Search for an Investigation using a Lucene/ES query string"
                 :query [params InvestigationSearchParams]
                 :capabilities #{:read-investigation :search-investigation}
+                :scopes #{"ctia/investigation:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -95,6 +98,7 @@
                 :query [params InvestigationGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-investigation
+                :scopes #{"ctia/investigation:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [investigation (read-store :investigation
@@ -114,6 +118,7 @@
                    :summary "Deletes an Investigation"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-investigation
+                   :scopes #{"ctia/investigation:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

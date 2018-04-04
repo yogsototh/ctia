@@ -41,6 +41,7 @@
                      "observable.")
        :header-params [{Authorization :- (s/maybe s/Str) nil}]
        :capabilities :read-verdict
+       :scopes #{"ctia/verdict:read"}
        :identity identity
        :identity-map identity-map
        (or (some-> (read-store :judgement
@@ -83,6 +84,8 @@
                      "specified observable based on Judgement relationships.")
        :header-params [{Authorization :- (s/maybe s/Str) nil}]
        :capabilities #{:list-judgements :list-relationships}
+       :scopes #{"ctia/judgements:read"
+                 "ctia/relationships:read"}
        :identity identity
        :identity-map identity-map
        (paginated-ok
@@ -146,6 +149,8 @@
                      "specified observable based on Sighting relationships.")
        :header-params [{Authorization :- (s/maybe s/Str) nil}]
        :capabilities #{:list-sightings :list-relationships}
+       :scopes #{"ctia/sightings:read"
+                 "ctia/relationships:read"}
        :identity identity
        :identity-map identity-map
        (paginated-ok
@@ -187,6 +192,8 @@
                      "specified observable based on Sighting relationships")
        :header-params [{Authorization :- (s/maybe s/Str) nil}]
        :capabilities #{:list-sightings :list-relationships}
+       :scopes #{"ctia/sightings:read"
+                 "ctia/relationships:read"}
        :identity identity
        :identity-map identity-map
        (paginated-ok

@@ -26,6 +26,7 @@
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "Adds a new Data Table"
                  :capabilities :create-data-table
+                 :scopes #{"ctia/data-table:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -51,6 +52,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List data-tables by external id"
                 :capabilities #{:read-data-table :external-id}
+                :scopes #{"ctia/data-table:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :data-table
@@ -69,6 +71,7 @@
                 :query [params DataTableGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-data-table
+                :scopes #{"ctia/data-table:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [data-table (read-store :data-table
@@ -88,6 +91,7 @@
                    :summary "Deletes a Data Table"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-data-table
+                   :scopes #{"ctia/data-table:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

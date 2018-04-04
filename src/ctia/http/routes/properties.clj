@@ -9,6 +9,7 @@
            :tags ["Properties"]
            :summary "The currently running properties"
            :capabilities :developer
+           :scopes #{"developer"}
            :header-params [{Authorization :- (s/maybe s/Str) nil}]
            (GET "/" []
                 (ok @properties))))

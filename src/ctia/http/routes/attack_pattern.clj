@@ -29,6 +29,7 @@
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "Adds a new Attack Pattern"
                  :capabilities :create-attack-pattern
+                 :scopes #{"ctia/attack-pattern:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -55,6 +56,7 @@
                 :summary "Updates an Attack Pattern"
                 :path-params [id :- s/Str]
                 :capabilities :create-attack-pattern
+                :scopes #{"ctia/attack-pattern:write"}
                 :identity identity
                 :identity-map identity-map
                 (-> (flows/update-flow
@@ -85,6 +87,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List attack patterns by external id"
                 :capabilities #{:read-attack-pattern :external-id}
+                :scopes #{"ctia/attack-pattern:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :attack-pattern list-attack-patterns
@@ -100,6 +103,7 @@
                 :summary "Search for an Attack Pattern using a Lucene/ES query string"
                 :query [params AttackPatternSearchParams]
                 :capabilities #{:read-attack-pattern :search-attack-pattern}
+                :scopes #{"ctia/attack-pattern:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -121,6 +125,7 @@
                 :query [params AttackPatternGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-attack-pattern
+                :scopes #{"ctia/attack-pattern:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [attack-pattern (read-store :attack-pattern
@@ -140,6 +145,7 @@
                    :summary "Deletes an Attack Pattern"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-attack-pattern
+                   :scopes #{"ctia/attack-pattern:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

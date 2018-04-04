@@ -68,4 +68,5 @@
       :summary "Display Metrics"
       :header-params [{Authorization :- (s/maybe s/Str) nil}]
       :capabilities :developer
+      :scopes #{"developer"}
       (ok (render-metrics)))))

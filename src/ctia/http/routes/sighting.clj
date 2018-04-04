@@ -29,6 +29,7 @@
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "Adds a new Sighting"
                  :capabilities :create-sighting
+                 :scopes #{"ctia/sighting:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -54,6 +55,7 @@
                 :summary "Updates a Sighting"
                 :path-params [id :- s/Str]
                 :capabilities :create-sighting
+                :scopes #{"ctia/sighting:write"}
                 :identity identity
                 :identity-map identity-map
                 (-> (flows/update-flow
@@ -84,6 +86,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List sightings by external id"
                 :capabilities #{:read-sighting :external-id}
+                :scopes #{"ctia/sighting:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :sighting
@@ -100,6 +103,7 @@
                 :summary "Search for Sightings using a Lucene/ES query string"
                 :query [params SightingSearchParams]
                 :capabilities #{:read-sighting :search-sighting}
+                :scopes #{"ctia/sighting:read"}
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :identity identity
                 :identity-map identity-map
@@ -121,6 +125,7 @@
                 :query [params SightingGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-sighting
+                :scopes #{"ctia/sighting:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [sighting (read-store :sighting
@@ -139,6 +144,7 @@
                    :summary "Deletes a Sighting"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-sighting
+                   :scopes #{"ctia/sighting:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (write-store :sighting

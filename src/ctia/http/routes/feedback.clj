@@ -27,6 +27,7 @@
                  :summary "Adds a new Feedback"
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :capabilities :create-feedback
+                 :scopes #{"ctia/feedback:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -51,6 +52,7 @@
                 :summary "Search Feedback"
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-feedback
+                :scopes #{"ctia/feedback:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :feedback
@@ -69,6 +71,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List feedback by external id"
                 :capabilities #{:read-feedback :external-id}
+                :scopes #{"ctia/feedback:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :feedback
@@ -87,6 +90,7 @@
                 :query [params FeedbackGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-feedback
+                :scopes #{"ctia/feedback:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [feedback (read-store :feedback
@@ -106,6 +110,7 @@
                    :summary "Deletes a feedback"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-feedback
+                   :scopes #{"ctia/feedback:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow

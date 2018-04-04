@@ -183,6 +183,7 @@
                                  :create-casebook
                                  :create-sighting
                                  :create-tool}
+                 :scopes #{"ctia:write"}
                  (if (> (bulk-size bulk)
                         (get-bulk-max-size))
                    (bad-request (str "Bulk max nb of entities: " (get-bulk-max-size)))
@@ -224,6 +225,7 @@
                                 :read-casebook
                                 :read-sighting
                                 :read-tool}
+                :scopes #{"ctia:read"}
                 :identity auth-identity
                 (let [bulk (into {} (remove (comp empty? second)
                                             {:actors          actors

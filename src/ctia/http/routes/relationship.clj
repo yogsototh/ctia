@@ -30,6 +30,7 @@
                  :header-params [{Authorization :- (s/maybe s/Str) nil}]
                  :summary "Adds a new Relationship"
                  :capabilities :create-relationship
+                 :scopes #{"ctia/relationship:write"}
                  :identity identity
                  :identity-map identity-map
                  (-> (flows/create-flow
@@ -56,6 +57,7 @@
                 :summary "Updates a Relationship"
                 :path-params [id :- s/Str]
                 :capabilities :create-relationship
+                :scopes #{"ctia/relationship:write"}
                 :identity identity
                 :identity-map identity-map
                 (-> (flows/update-flow
@@ -86,6 +88,7 @@
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :summary "List relationships by external id"
                 :capabilities #{:read-relationship :external-id}
+                :scopes #{"ctia/relationship:read"}
                 :identity identity
                 :identity-map identity-map
                 (-> (read-store :relationship
@@ -102,6 +105,7 @@
                 :summary "Search for a Relationship using a Lucene/ES query string"
                 :query [params RelationshipSearchParams]
                 :capabilities #{:read-relationship :search-relationship}
+                :scopes #{"ctia/relationship:read"}
                 :identity identity
                 :identity-map identity-map
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
@@ -123,6 +127,7 @@
                 :query [params RelationshipGetParams]
                 :header-params [{Authorization :- (s/maybe s/Str) nil}]
                 :capabilities :read-relationship
+                :scopes #{"ctia/relationship:read"}
                 :identity identity
                 :identity-map identity-map
                 (if-let [relationship (read-store :relationship
@@ -142,6 +147,7 @@
                    :summary "Deletes an Relationship"
                    :header-params [{Authorization :- (s/maybe s/Str) nil}]
                    :capabilities :delete-relationship
+                   :scopes #{"ctia/relationship:write"}
                    :identity identity
                    :identity-map identity-map
                    (if (flows/delete-flow
